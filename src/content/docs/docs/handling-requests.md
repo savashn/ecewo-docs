@@ -1,6 +1,6 @@
 ---
 title: Handling Requests
-description: A guide in my new Starlight docs site.
+description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 
 ### Request Body

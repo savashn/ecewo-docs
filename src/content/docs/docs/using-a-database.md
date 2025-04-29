@@ -1,6 +1,6 @@
 ---
 title: Using A Database
-description: A guide in my new Starlight docs site.
+description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 
 We need a database if we are building a backend service. This documentation shows how to use SQLite, but you can use any database you prefer.

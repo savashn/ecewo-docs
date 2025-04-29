@@ -1,6 +1,6 @@
 ---
 title: Authentication
-description: A guide in my new Starlight docs site.
+description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 
 ecewo offers some session management APIs for authentication and authorization:

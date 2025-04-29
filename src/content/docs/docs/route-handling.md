@@ -1,6 +1,6 @@
 ---
 title: Route Handling
-description: A guide in my new Starlight docs site.
+description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 
 We successfully ran our server in the previous chapter. Now we can start to receive requests and send responses.

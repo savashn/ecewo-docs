@@ -1,6 +1,6 @@
 ---
 title: Using cJSON
-description: A guide in my new Starlight docs site.
+description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 
 ecewo supports a powerful built-in JSON library called [cJSON](https://github.com/DaveGamble/cJSON).
