@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://ecewo.vercel.app">
-        <img src="https://raw.githubusercontent.com/savashn/ecewo-docs/main/public/ecewologo.svg"
+        <img src="https://raw.githubusercontent.com/savashn/ecewo-docs/main/public/ecewologo.svg" />
     </a>
 </div>
 
