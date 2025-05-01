@@ -15,7 +15,7 @@ With the power of these APIs and cJSON, we can easily manage the authentication 
 
 Let's make an authentication example and see how it works.
 
-### Login
+## Login
 
 We have two test users:
 
@@ -42,7 +42,7 @@ Let's write a `login` handler:
 // src/handlers.c
 
 #include <stdio.h>
-#include "ecewo/router.h"
+#include "ecewo.h"
 #include <cjson.h>
 #include <session.h>
 #include "src/db.h"
@@ -131,7 +131,7 @@ void handle_login(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
 void handle_login(Req *req, Res *res);
 
@@ -141,18 +141,31 @@ void handle_login(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "ecewo/routes.h"
+#include "server.h"
+#include "ecewo.h"
 #include "handlers.h"
+#include "db.h"
 
-post("/login", handle_login);
+int main()
+{
+    init_db();
+    post("/login", handle_login);
+    ecewo();
+    sqlite3_close(db);
+    return 0;
+}
 ```
 
 If login is successful, a header like `"Cookie": "session_id=VKdbMRbqMhh_40F6ef2FreEba6JqkH16"` will be added to the headers.
 
-### Logout
+## Logout
+
+We also write a logout handler to use after login. Let's add these parts:
 
 ```sh
 // src/handlers.c
+
+// Add this handler:
 
 void handle_logout(Req *req, Res *res)
 {
@@ -171,24 +184,54 @@ void handle_logout(Req *req, Res *res)
 }
 ```
 
+Declare the logout handler too:
+
 ```sh
 // src/handlers.h
 
-void handle_logout(Req *req, Res *res);
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void handle_login(Req *req, Res *res);
+void handle_logout(Req *req, Res *res); // We added now
+
+#endif
 ```
+
+And also add to entry point:
 
 ```sh
 // src/main.c
 
-post("/logout", handle_logout);
+#include "server.h"
+#include "ecewo.h"
+#include "handlers.h"
+#include "db.h"
+
+int main()
+{
+    init_db();
+    post("/login", handle_login);
+    post("/logout", handle_logout); // We added it now
+    ecewo();
+    sqlite3_close(db);
+    return 0;
+}
 ```
 
-### Getting Session Data
+## Getting Session Data
 
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
 ```sh
 // src/handlers.c
+
+#include <stdio.h>
+#include "ecewo.h"
+#include <cjson.h>
+#include <session.h>
 
 void handle_session_data(Req *req, Res *res)
 {
@@ -212,16 +255,45 @@ void handle_session_data(Req *req, Res *res)
 ```
 
 ```sh
-// src/main.c
+// src/handlers.h
 
-get("/handle-session", handle_session_data);
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void handle_login(Req *req, Res *res);
+void handle_logout(Req *req, Res *res);
+void handle_session_data(Req *req, Res *res); // We added now
+
+#endif
 ```
 
-First, we need to login. Run the `make build` command, send a `POST` request to the login page and get the session.
-After that, send another request to the `http://localhost:3000/handle-session` address to see the session data.
+```sh
+// src/main.c
+
+#include "server.h"
+#include "ecewo.h"
+#include "handlers.h"
+#include "db.h"
+
+int main()
+{
+    init_db();
+    get("/session", handle_session_data); // We added it now
+    post("/login", handle_login);
+    post("/logout", handle_logout);
+    ecewo();
+    sqlite3_close(db);
+    return 0;
+}
+```
+
+First, we need to login. Rebuild the program and send a `POST` request to the `http://localhost:8080/login` and get the session.
+After that, send another request to the `http://localhost:8080/session` address to see the session data.
 The output will this:
 
-```sh
+```
 {
     "name": "John",
     "username": "johndoe",
@@ -279,13 +351,13 @@ void handle_session_name_data(Req *req, Res *res)
 
 The output will be:
 
-```sh
+```
 {
     "name": "John"
 }
 ```
 
-### Protected Routes
+## Protected Routes
 
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
@@ -408,7 +480,7 @@ void edit_profile(Req *req, Res *res)
 }
 ```
 
-Let's send 3 different request to the `http://localhost:3000/edit/johndoe` route.
+Let's send 3 different request to the `http://localhost:8080/edit/johndoe` route.
 
 If we try without any authorization, we'll get that response:
 
@@ -435,7 +507,7 @@ When we signed in as johndoe and send a request again, here is what we will get:
 }
 ```
 
-### Notes
+## Notes
 
 ** **NOTE 1** **
 

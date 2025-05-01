@@ -16,52 +16,34 @@ Unzip it, take the `sqlite3.c` and `sqlite3.h` files, and put them to anywhere y
 ```
 your-project/
 ├── ecewo/                  # Source codes of ecewo
-├── src/                    # Source code of ours
-│   ├── main.c              # Main application entry point
-│   ├── handlers/
-│   │   ├── handlers.c      # Our handlers
-│   │   └── handlers.h      # Header file of handlers
-│   ├── lib/                # Folder for external libraries
-│   │   ├── sqlite3.c       # SQLite3 source code we downloaded
-│   │   └── sqlite3.h       # SQLite3 header file we downloaded
-│   └── db/
-│       ├── db.h            # Our database header file
-│       └── db.c            # Our database configs
-└── makefile                # Makefile for project configs
+└── src/                    # Source code of ours
+    ├── main.c              # Main application entry point
+    ├── handlers/           # Folder for our handlers
+    │   ├── handlers.c      # Our handlers
+    │   └── handlers.h      # Header file of handlers
+    ├── lib/                # Folder for external libraries
+    │   ├── sqlite3.c       # SQLite3 source code we downloaded
+    │   └── sqlite3.h       # SQLite3 header file we downloaded
+    ├── db/                 # Folder for our database migrations
+    │   ├── db.h            # Our database header file
+    │   └── db.c            # Our database configs
+    └── CMakeLists.txt      # Our compiling configs
 ```
 
-## Change The Makefile
+## Update CMake
 
-Add `.c` files to compile:
-
-```
-SRC = \
-    ...
-    ...
-    src/lib/sqlite3.c \
-    src/db/db.c \
-```
-
-And add shortcuts to the bottom of the `makefile` to build and clean the database:
+Add `.c` files to `CMakeLists.txt` to compile:
 
 ```
-run: all
-	./${OUT}
+// src/CMakeLists.txt
 
-clean:
-	rm -f $(OUT)
-
-build: clean all run
-
-# Shortcut to clean the database:
-clean-db:
-	rm -f sql.db
-
-# Shortcut to build with db
-build-all: clean clean-db all run
-
-# Add the new shortcuts:
-.PHONY: all run clean build clean clean-db build-all
+set(APP_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/handlers/handlers.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sqlite3.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/db/db.c
+    PARENT_SCOPE
+)
 ```
 
 ## Connecting To Database
@@ -137,21 +119,19 @@ int init_db();
 ```sh
 // src/main.c
 
-#include "ecewo/server.h"
+#include "server.h"
 #include "db/db.h"
 
 int main()
 {
     init_db();
-    ecewo(3000);
+    ecewo();
     sqlite3_close(db);
     return 0;
 }
 ```
 
-Now we can rebuild our program by running `make build-all` command in the terminal.
-
-If everything went OK, a `db.sql`file containing a `users` table will be created in your root directory."
+Now we can rebuild our program. If everything went OK, a `db.sql` file containing a `users` table will be created in your root directory.
 
 ## Example Usage
 
@@ -160,11 +140,11 @@ If everything went OK, a `db.sql`file containing a `users` table will be created
 We already created a 'Users' table in the previously chapter. Now we will add a user to it. Let's begin with writing our POST handler:
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.c
 
 #include <stdio.h>
-#include "ecewo/router.h"
-#include <cjson.h>
+#include "ecewo.h"
+#include "cjson.h"
 #include "src/lib/sqlite3.h"
 
 extern sqlite3 *db; // THIS IS IMPORTANT TO USE THE DATABASE
@@ -242,10 +222,12 @@ void add_user(Req *req, Res *res)
 Add to `handlers.h` too:
 
 ```sh
+// src/handlers/handlers.h
+
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
 void add_user(Req *req, Res *res);
 
@@ -257,8 +239,8 @@ In `main.c`:
 ```sh
 // src/main.c
 
-#include "ecewo/server.h"
-#include "routes.h"
+#include "server.h"
+#include "ecewo.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
@@ -266,17 +248,18 @@ int main()
 {
     init_db();
     post("/user", add_user);
-    ecewo(3000);
+    ecewo();
     sqlite3_close(db);
     return 0;
 }
 ```
 
-Let's rebuild our server by running `make build` command in the terminal. And then we'll send a `POST` request at `http://localhost:3000/user`.
-You can use `POSTMAN` or something else to send requests.
+Let's rebuild our server and then send a `POST` request at `http://localhost:8080/user`.
+We can use `POSTMAN` or something else to send requests.
 
 We'll send a request, which has a body like:
-```sh
+
+```
 {
     "name": "John",
     "surname": "Doe",
@@ -286,9 +269,9 @@ We'll send a request, which has a body like:
 
 If everything is correct, the output will be `User created!`.
 
-Send one more request for the next example:
+Let's send one more request for the next example:
 
-```sh
+```
 {
     "name": "Jane",
     "surname": "Doe",
@@ -303,6 +286,13 @@ But let's say that "name" and "surname" fields are not required for us, so we ne
 To do this, in `headers.c`:
 
 ```sh
+// src/handlers/handlers.c
+
+#include <stdio.h>
+#include "ecewo.h"
+#include "cjson.h"
+#include "src/lib/sqlite3.h"
+
 void get_all_users(Req *req, Res *res)
 {
     const char *sql = "SELECT * FROM users;";
@@ -376,13 +366,33 @@ Now let's define the header of our new handler and use it with the router in `ma
 ```sh
 // src/handlers/handlers.h
 
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
 void get_all_users(Req *req, Res *res);
+
+#endif
 ```
 
 ```sh
 // src/main.c
 
-get("/users", get_all_users);
+#include "server.h"
+#include "ecewo.h"
+#include "handlers/handlers.h"
+#include "db/db.h"
+
+int main()
+{
+    init_db();
+    post("/user", add_user);
+    get("/users", get_all_users);
+    ecewo();
+    sqlite3_close(db);
+    return 0;
+}
 ```
 
 Now if we send a request, we'll receive this output:

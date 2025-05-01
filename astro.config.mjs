@@ -17,16 +17,10 @@ export default defineConfig({
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/savashn/ecewo' }],
 			sidebar: [
 				{
-					label: 'Getting Started',
-					items: [
-						{ label: 'Introduction', slug: 'docs/introduction' },
-						{ label: 'Installation', slug: 'docs/installation' },
-						{ label: 'Start Server', slug: 'docs/start-server' }
-					]
-				},
-				{
 					label: 'Guides',
 					items: [
+						{ label: 'Introduction', slug: 'docs/introduction' },
+						{ label: 'Getting Started', slug: 'docs/getting-started' },
 						{ label: 'Route Handling', slug: 'docs/route-handling' },
 						{ label: 'Handling Requests', slug: 'docs/handling-requests' },
 						{ label: 'Using cJSON', slug: 'docs/using-cjson' },

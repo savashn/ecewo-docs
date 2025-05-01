@@ -12,7 +12,7 @@ Let's begin with classics; writing a `hello world` handler. First, create a `han
 ```sh
 // src/handlers.c
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
 void hello_world(Req *req, Res *res)
 {
@@ -20,16 +20,17 @@ void hello_world(Req *req, Res *res)
 }
 ```
 
-We include `"ecewo/router.h"` to handle requests using `Req` and `Res`, and send a response via `reply()`.
-We will see thee request handling more detailed in the next chapter.
+We include `"ecewo.h"` header, which is the main module of our project. It provides various HTTP tools — such as `Req`, `Res` and `reply()` — used for writing handlers and routers.
+
+We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `reply()` is using for sending a response to the client.
 
 When we are done with the handler, we should send a response to the client via `reply()` function. Basically, it takes 4 parameters:
-- The `res` object,
+- The `res` parameter,
 - Status code,
-- Content-type,
+- Content-Type,
 - Response body
 
-We must declare this handler function in a `.h` file. Luckly, we have created a `handlers.h` together with `handlers.c` file.
+Now we must declare this handler function in a `.h` file —  just like we always do when writing in C. We already created a `handlers.h` along with `handlers.c` file.
 
 ```sh
 // src/handlers.h
@@ -37,25 +38,26 @@ We must declare this handler function in a `.h` file. Luckly, we have created a 
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
 void hello_world(Req *req, Res *res);
 
 #endif
 ```
 
-We declared our handler function but we are not done yet. We need to add `handlers.c` file to the `SRC` list to make it compile, just like we did in the previous chapter. See the [Makefile](/docs/installation#src).
+We declared our handler function but we are not done yet. We need to add `handlers.c` file to our `CMakeLists.txt` to compile it.
 
 ```
-SRC = \
-    ecewo/server.c \
-    ecewo/router.c \
-    ecewo/routes.c \
-    ecewo/request.c \
-    ecewo/lib/session.c \
-    ecewo/lib/cjson.c \
-    src/main.c \        # We added this in the previous chapter
-    src/handlers.c \    # We added it now
+// src/CMakeLists.txt
+
+cmake_minimum_required(VERSION 3.10)
+project(your-project VERSION 0.1.0 LANGUAGES C)
+
+set(APP_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/handlers.c # WE ADDED OUR HANDLERS
+    PARENT_SCOPE
+)
 ```
 
 Now we can write the router, which will run our `hello_world` handler when a request is received.
@@ -67,53 +69,42 @@ We can create our routers with `get()`, `post()`, `put()` and `del()` methods. L
 ```sh
 // src/main.c
 
-#include "ecewo/server.h"   // This is for starting server
-#include "ecewo/routes.h"   // This is for routing
-#include "handlers.h"       // This is our handlers
+#include "server.h"     // This is for starting server
+#include "ecewo.h"      // This is for routing
+#include "handlers.h"   // This is our handlers
 
 int main()
 {
     get("/", hello_world); // "GET" router for hello_world handler
 
-    ecewo(3000);        // Start server
-    return 0;           // Exit main function
+    ecewo();    // Start server
+    return 0;   // Exit main function
 }
 ```
 
-`get()`, `post()`, `put()` and `del()` takes two params. First one is the path and the second one is the handler.
+`get()`, `post()`, `put()` and `del()` takes two parameters. First one is the path and second one is the handler.
 
-Now we can run the `make build` command in the terminal and go to the `http://localhost:3000/` again. We'll receive this:
+Now we can recompile our program and go to `http://localhost:8080/` again. We'll receive this:
 
 ```
 hello world!
 ```
 
-Congratulations! You have wrote your first route with ecewo!
+So simple.
 
 ## Notes
 
 <--- **NOTE 1** --->
 
-We have to use our routes in the same file where we start the server.
-In our example, it is `main.c` file.
+We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
 
 <br/>
 
 <--- **NOTE 2** --->
 
-We have to use double quots `""` to define the route path every time. If you accidentally write single quots `''`, you'll get an error.
+We have to use double quots `""` to define the route path every time. If we accidentally write single quots `''`, we'll get an error.
 
 ```
 get("/", hello_world); // CORRECT
 get('/', hello_world); // INCORRECT
 ```
-
-<br/>
-
-<--- **NOTE 3** --->
-
-`router.h` and `routes.h` are different headers and they serve different purposes:
-
-- `router.h` is used for writing handlers; it provides `Req`, `Res` and `reply()`.
-- `routes.h` is used for defining routes; it provides `get()`, `post()`, `put()` and `del()` routers.
-

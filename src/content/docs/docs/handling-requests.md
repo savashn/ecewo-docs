@@ -3,12 +3,17 @@ title: Handling Requests
 description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 
-### Request Body
+We can easily access the request's `body`, `params`, `query`, and `headers` by including `"ecewo.h"`. We'll see just basic examples in this chapter.
+
+Let's see how it basically works.
+
+## Request Body
 
 ```sh
 // src/handlers.c
 
-#include "ecewo/router.h"
+#include "ecewo.h"
+#include <stdio.h>
 
 void print_body(Req *req, Res *res)
 {
@@ -23,7 +28,7 @@ void print_body(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
 void print_body(Req *req, Res *res);
 
@@ -33,19 +38,19 @@ void print_body(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "ecewo/server.h"
-#include "routes.h"
-#include "handlers/handlers.h"
+#include "server.h"
+#include "ecewo.h"
+#include "handlers.h"
 
 int main()
 {
     post("/print-body", print_body);
-    ecewo(3000);
+    ecewo();
     return 0;
 }
 ```
 
-Let's send a `POST` request to the `http://localhost:3000/print-body` with this body:
+Let's send a `POST` request to the `http://localhost:8080/print-body` with this body:
 
 ```
 {
@@ -55,7 +60,7 @@ Let's send a `POST` request to the `http://localhost:3000/print-body` with this 
 }
 ```
 
-We'll receive a `Success` message and see the body in the terminal:
+We'll receive a `Success` message and see the body in the console:
 
 ```
 Body: {
@@ -65,9 +70,9 @@ Body: {
 }
 ```
 
-More advanced usage is shown in [Using cJSON](/docs/using-cjson) section.
+For more advanced usage; see the [Using cJSON](/docs/using-cjson) chapter.
 
-### Request Params
+## Request Params
 
 Let's take a specific user by params. We can access the params using the `get_req(&req->params, "params")` API. Let's write a handler that gives us the "slug":
 But first, add `routes.h` the route:
@@ -75,9 +80,9 @@ But first, add `routes.h` the route:
 ```sh
 // src/handlers.c
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
-void print_params(Req *req, Res *res)
+void send_params(Req *req, Res *res)
 {
     const char *slug = get_req(&req->params, "slug"); // We got the params
 
@@ -87,7 +92,6 @@ void print_params(Req *req, Res *res)
         return;
     }
 
-    printf("Params: %s\n", slug);
     reply(res, "200 OK", "text/plain", slug);
 }
 ```
@@ -98,9 +102,9 @@ void print_params(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo/router.h"
+#include "ecewo.h"
 
-void print_params(Req *req, Res *res);
+void send_params(Req *req, Res *res);
 
 #endif
 ```
@@ -108,35 +112,42 @@ void print_params(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "ecewo/server.h"
-#include "ecewo/routes.h"
+#include "server.h"
+#include "ecewo.h"
 #include "handlers.h"
 
 int main()
 {
-    get("/print-params/:slug", print_params);
-    ecewo(3000);
+    get("/send-params/:slug", send_params);
+    ecewo();
     return 0;
 }
 ```
 
-Run the `make build` command in the terminal and send a request to `http://localhost:3000/print-params/testslug`. Server will send us `testslug`.
+Recompile the program and send a request to `http://localhost:8080/send-params/testslug`. Server will send us `testslug`.
 
-You can define more than one slug if you need using the same way. Here is an example:
+We can define more than one slug if we need using the same way. Here is an example:
 
 ```sh
 // src/main.c
 
+#include "server.h"
+#include "ecewo.h"
+#include "handlers.h"
+
 int main()
 {
     get("/print-more-params/:key/and/:value");
-    ecewo(3000);
+    ecewo();
     return 0;
 }
 ```
 
 ```sh
 // src/handlers.c
+
+#include <stdio.h>
+#include "ecewo.h"
 
 void print_more_params(Req *req, Res *res)
 {
@@ -155,25 +166,49 @@ void print_more_params(Req *req, Res *res)
 }
 ```
 
-If we to `http://localhost:3000/print-more-params/foo/and/bar` address we'll receive a `Success!` response and see the `foo` and `bar` in the terminal:
+```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void print_more_params(Req *req, Res *res);
+
+#endif
+```
+
+If we go to `http://localhost:8080/print-more-params/foo/and/bar` path, we'll receive a `Success!` response and see the `foo` and `bar` in the console:
 
 ```
 Key slug: foo Value slug: bar
 ```
 
-### Request Query
+## Request Query
 
 Like the `params`, we can use `get_req(&req->query, "query")` to get the query. Let's rewrite a handler using `query`: 
 
 ```sh
 // src/main.c
 
-// Create a route in the main function
-get("/print-query", print_query);
+#include "server.h"
+#include "ecewo.h"
+#include "handlers.h"
+
+int main()
+{
+    get("/print-query", print_query);
+    ecewo();
+    return 0;
+}
 ```
 
 ```sh
 // src/handlers.c
+
+#include "ecewo.h"
+#include <stdio.h>
 
 void print_query(Req *req, Res *res)
 {
@@ -192,18 +227,32 @@ void print_query(Req *req, Res *res)
 }
 ```
 
-Let's recompile the program by running `make build` and send a request to `http://localhost:3000/print-query?name=john&surname=doe`. We'll receivea `Success!` output and there will be our query strings in the terminal:
+```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void print_query(Req *req, Res *res);
+
+#endif
+```
+
+Let's recompile the program and send a request to `http://localhost:8080/print-query?name=john&surname=doe`. We'll receive a `Success!` responseand the query strings will be printed in the console:
 
 ```
 Name: john Surname: doe
 ```
 
-### Request Headers
+## Request Headers
 
-As like as the `params` and `query`, we can reach also the headers of the request using `get_req(&req->headers, "header")` API.
-ecewo also have some different APIs for authorization and authentication using sessions though, however, if you want to reach any item in the `req->headers`, you are able to do it.
+Just like `params` and `query`, we can also access request headers using the `get_req(&req->headers, "header")` API.
+ecewo also provides different APIs for authorization and session-based authentication.
+However, if you simply want to access a specific item in `req->headers`, you can do so directly.
 
-Normally, a standard `GET` request with `POSTMAN` have some headers like:
+Typically, a standard `GET` request with `POSTMAN` have some headers like:
 
 ```
 {
@@ -221,7 +270,9 @@ Let's say, we need the `User-Agent` header:
 ```sh
 // src/handlers.c
 
-void print_user_agent(Req *req, Res *res)
+#include "ecewo.h"
+
+void get_user_agent(Req *req, Res *res)
 {
     const char *header = get_req(&req->headers, "User-Agent");
 
@@ -231,25 +282,38 @@ void print_user_agent(Req *req, Res *res)
         return;
     }
 
-    printf("User Agent: %s\n", header);
-
-    reply(res, "200 OK", "text/plain", "Success");
+    reply(res, "200 OK", "text/plain", header);
 }
 ```
 
 ```sh
 // src/handlers.h
+#ifndef HANDLERS_H
+#define HANDLERS_H
 
-void print_user_agent(Req *req, Res *res);
+#include "ecewo.h"
+
+void get_user_agent(Req *req, Res *res);
+
+#endif
 ```
 
 ```sh
 // src/main.c
 
-get("/print-user-agent", print_user_agent);
+#include "server.h"
+#include "ecewo.h"
+#include "handlers.h"
+
+int main()
+{
+    get("/header", get_user_agent);
+    ecewo();
+    return 0;
+}
 ```
 
-The output will be `Success!` and there will be result in console:
+The result will be something like this:
 
 ```
     User Agent: PostmanRuntime/7.43.3
