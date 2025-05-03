@@ -1,5 +1,5 @@
 ---
-title: Using cJSON
+title: Using JSON
 description: Documentation of ecewo - A minimal HTTP framework for C.
 ---
 

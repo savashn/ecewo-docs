@@ -23,9 +23,10 @@ export default defineConfig({
 						{ label: 'Getting Started', slug: 'docs/getting-started' },
 						{ label: 'Route Handling', slug: 'docs/route-handling' },
 						{ label: 'Handling Requests', slug: 'docs/handling-requests' },
-						{ label: 'Using cJSON', slug: 'docs/using-cjson' },
+						{ label: 'Using JSON', slug: 'docs/using-json' },
 						{ label: 'Using A Database', slug: 'docs/using-a-database' },
-						{ label: 'Authentication', slug: 'docs/authentication' }
+						{ label: 'Authentication', slug: 'docs/authentication' },
+						{ label: 'Middleware', slug: 'docs/middleware' }
 					]
 				}
 			],
