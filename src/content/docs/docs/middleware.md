@@ -55,8 +55,8 @@ Now let's write two middlewares for those handlers.
 
 #include "router.h"
 
-int auth(Req *req, Res *res, MiddlewareChain *chain);
-int admin(Req *req, Res *res, MiddlewareChain *chain);
+int auth(Req *req, Res *res, Chain *chain);
+int admin(Req *req, Res *res, Chain *chain);
 
 #endif
 ```
@@ -66,13 +66,13 @@ int admin(Req *req, Res *res, MiddlewareChain *chain);
 
 #include "router.h"
 
-int auth(Req *req, Res *res, MiddlewareChain *chain)
+int auth(Req *req, Res *res, Chain *chain)
 {
     printf("Authentication middleware is working...\n");
     return next(chain, req, res);
 }
 
-int admin(Req *req, Res *res, MiddlewareChain *chain)
+int admin(Req *req, Res *res, Chain *chain)
 {
     printf("Middleware for admin is working...\n");
     return next(chain, req, res);
@@ -112,7 +112,7 @@ We have `use()` API to define global middlewares. Let's implement a `logger` in 
 
 #include "router.h"
 
-int logger(Req *req, Res *res, MiddlewareChain *chain)
+int logger(Req *req, Res *res, Chain *chain)
 {
     printf("Request received: %s %s\n", req->method, req->path);
     return next(chain, req, res);
@@ -127,7 +127,7 @@ int logger(Req *req, Res *res, MiddlewareChain *chain)
 
 #include "router.h"
 
-int logger(Req *req, Res *res, MiddlewareChain *chain);
+int logger(Req *req, Res *res, Chain *chain);
 
 #endif
 ```
