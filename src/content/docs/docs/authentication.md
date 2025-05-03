@@ -150,7 +150,7 @@ int main()
 {
     init_db();
     post("/login", handle_login);
-    ecewo();
+    ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
@@ -215,7 +215,7 @@ int main()
     init_db();
     post("/login", handle_login);
     post("/logout", handle_logout); // We added it now
-    ecewo();
+    ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
@@ -283,14 +283,14 @@ int main()
     get("/session", handle_session_data); // We added it now
     post("/login", handle_login);
     post("/logout", handle_logout);
-    ecewo();
+    ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
 ```
 
-First, we need to login. Rebuild the program and send a `POST` request to the `http://localhost:8080/login` and get the session.
-After that, send another request to the `http://localhost:8080/session` address to see the session data.
+First, we need to login. Rebuild the program and send a `POST` request to the `http://localhost:4000/login` and get the session.
+After that, send another request to the `http://localhost:4000/session` address to see the session data.
 The output will this:
 
 ```
@@ -480,7 +480,7 @@ void edit_profile(Req *req, Res *res)
 }
 ```
 
-Let's send 3 different request to the `http://localhost:8080/edit/johndoe` route.
+Let's send 3 different request to the `http://localhost:4000/edit/johndoe` route.
 
 If we try without any authorization, we'll get that response:
 

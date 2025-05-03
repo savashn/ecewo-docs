@@ -47,12 +47,12 @@ Let’s configure a basic `main.c` file to start server first:
 
 int main()
 {
-  ecewo();
+  ecewo(4000);
   return 0;
 }
 ```
 
-The `server.h` header provides the `ecewo()` function that starts the server.
+The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a parameter, which is the `PORT`.
 
 Now we need a `CMakeLists.txt` file to compile our program. So let's create one:
 
@@ -114,10 +114,10 @@ When we ran the suitable command; we’ll see following informations if our serv
 
 ```
 ecewo [version]
-Server is running at: http://localhost:8080
+Server is running at: http://localhost:4000
 ```
 
-Now if we go to `http://localhost:8080/` we'll see a basic text message:
+Now if we go to `http://localhost:4000/` we'll see a basic text message:
 
 ```
 404 Not Found

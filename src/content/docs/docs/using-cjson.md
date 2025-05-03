@@ -67,12 +67,12 @@ void hello_world(Req *req, Res *res);
 int main()
 {
     get("/", hello_world);
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```
 
-Now we can recompile and send a request to `http://localhost:8080/` again. We'll receive a JSON:
+Now we can recompile and send a request to `http://localhost:4000/` again. We'll receive a JSON:
 
 ```
 {"hello":"world"}
@@ -149,12 +149,12 @@ void handle_user(Req *req, Res *res);
 int main()
 {
     post("/user", handle_user);
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```
 
-Let's recompile the program and send a `POST` request to `http://localhost:8080/user` with this body:
+Let's recompile the program and send a `POST` request to `http://localhost:4000/user` with this body:
 
 ```
 {

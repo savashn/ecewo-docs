@@ -45,12 +45,12 @@ void print_body(Req *req, Res *res);
 int main()
 {
     post("/print-body", print_body);
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```
 
-Let's send a `POST` request to the `http://localhost:8080/print-body` with this body:
+Let's send a `POST` request to the `http://localhost:4000/print-body` with this body:
 
 ```
 {
@@ -119,12 +119,12 @@ void send_params(Req *req, Res *res);
 int main()
 {
     get("/send-params/:slug", send_params);
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```
 
-Recompile the program and send a request to `http://localhost:8080/send-params/testslug`. Server will send us `testslug`.
+Recompile the program and send a request to `http://localhost:4000/send-params/testslug`. Server will send us `testslug`.
 
 We can define more than one slug if we need using the same way. Here is an example:
 
@@ -138,7 +138,7 @@ We can define more than one slug if we need using the same way. Here is an examp
 int main()
 {
     get("/print-more-params/:key/and/:value");
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```
@@ -179,7 +179,7 @@ void print_more_params(Req *req, Res *res);
 #endif
 ```
 
-If we go to `http://localhost:8080/print-more-params/foo/and/bar` path, we'll receive a `Success!` response and see the `foo` and `bar` in the console:
+If we go to `http://localhost:4000/print-more-params/foo/and/bar` path, we'll receive a `Success!` response and see the `foo` and `bar` in the console:
 
 ```
 Key slug: foo Value slug: bar
@@ -199,7 +199,7 @@ Like the `params`, we can use `get_req(&req->query, "query")` to get the query. 
 int main()
 {
     get("/print-query", print_query);
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```
@@ -240,7 +240,7 @@ void print_query(Req *req, Res *res);
 #endif
 ```
 
-Let's recompile the program and send a request to `http://localhost:8080/print-query?name=john&surname=doe`. We'll receive a `Success!` responseand the query strings will be printed in the console:
+Let's recompile the program and send a request to `http://localhost:4000/print-query?name=john&surname=doe`. We'll receive a `Success!` responseand the query strings will be printed in the console:
 
 ```
 Name: john Surname: doe
@@ -308,7 +308,7 @@ void get_user_agent(Req *req, Res *res);
 int main()
 {
     get("/header", get_user_agent);
-    ecewo();
+    ecewo(4000);
     return 0;
 }
 ```

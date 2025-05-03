@@ -77,14 +77,14 @@ int main()
 {
     get("/", hello_world); // "GET" router for hello_world handler
 
-    ecewo();    // Start server
+    ecewo(4000);    // Start server
     return 0;   // Exit main function
 }
 ```
 
 `get()`, `post()`, `put()` and `del()` takes two parameters. First one is the path and second one is the handler.
 
-Now we can recompile our program and go to `http://localhost:8080/` again. We'll receive this:
+Now we can recompile our program and go to `http://localhost:4000/` again. We'll receive this:
 
 ```
 hello world!

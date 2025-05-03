@@ -125,7 +125,7 @@ int init_db();
 int main()
 {
     init_db();
-    ecewo();
+    ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
@@ -248,13 +248,13 @@ int main()
 {
     init_db();
     post("/user", add_user);
-    ecewo();
+    ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
 ```
 
-Let's rebuild our server and then send a `POST` request at `http://localhost:8080/user`.
+Let's rebuild our server and then send a `POST` request at `http://localhost:4000/user`.
 We can use `POSTMAN` or something else to send requests.
 
 We'll send a request, which has a body like:
@@ -389,7 +389,7 @@ int main()
     init_db();
     post("/user", add_user);
     get("/users", get_all_users);
-    ecewo();
+    ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
