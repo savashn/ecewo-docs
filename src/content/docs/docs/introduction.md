@@ -42,3 +42,4 @@ ecewo is a minimal HTTP framework for C. It takes the hard part of C programming
 7. [Middleware](/docs/middleware)
     - 7.1 [Route Middleware](/docs/middleware#route-middleware)
     - 7.2 [Global Middleware](/docs/middleware#global-middleware)
+8. [Environment Variables](/docs/environment-variables)

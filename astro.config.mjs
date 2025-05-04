@@ -26,7 +26,8 @@ export default defineConfig({
 						{ label: 'Using JSON', slug: 'docs/using-json' },
 						{ label: 'Using A Database', slug: 'docs/using-a-database' },
 						{ label: 'Authentication', slug: 'docs/authentication' },
-						{ label: 'Middleware', slug: 'docs/middleware' }
+						{ label: 'Middleware', slug: 'docs/middleware' },
+						{ label: 'Environment Variables', slug: 'docs/environment-variables' }
 					]
 				}
 			],
