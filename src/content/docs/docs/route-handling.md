@@ -12,7 +12,7 @@ Let's begin with classics; writing a `hello world` handler. First, create a `han
 ```sh
 // src/handlers.c
 
-#include "ecewo.h"
+#include "router.h"
 
 void hello_world(Req *req, Res *res)
 {
@@ -20,7 +20,7 @@ void hello_world(Req *req, Res *res)
 }
 ```
 
-We include `"ecewo.h"` header, which is the main module of our project. It provides various HTTP tools — such as `Req`, `Res` and `reply()` — used for writing handlers and routers.
+We include `"router.h"` header, which is the main module of our project. It provides various HTTP tools — such as `Req`, `Res` and `reply()` — used for writing handlers and routers.
 
 We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `reply()` is using for sending a response to the client.
 
@@ -38,7 +38,7 @@ Now we must declare this handler function in a `.h` file —  just like we alway
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void hello_world(Req *req, Res *res);
 
@@ -69,8 +69,8 @@ We can create our routers with `get()`, `post()`, `put()` and `del()` methods. L
 ```sh
 // src/main.c
 
-#include "server.h"     // This is for starting server
-#include "ecewo.h"      // This is for routing
+#include "ecewo.h"     // This is for starting server
+#include "router.h"      // This is for routing
 #include "handlers.h"   // This is our handlers
 
 int main()

@@ -43,7 +43,7 @@ Let’s configure a basic `main.c` file to start server first:
 ```sh
 // src/main.c
 
-#include "server.h"
+#include "ecewo.h"
 
 int main()
 {
@@ -52,7 +52,7 @@ int main()
 }
 ```
 
-The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a parameter, which is the `PORT`.
+The `ecewo.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a parameter, which is the `PORT`.
 
 Now we need a `CMakeLists.txt` file to compile our program. So let's create one:
 

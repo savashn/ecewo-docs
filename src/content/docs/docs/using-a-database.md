@@ -119,7 +119,7 @@ int init_db();
 ```sh
 // src/main.c
 
-#include "server.h"
+#include "ecewo.h"
 #include "db/db.h"
 
 int main()
@@ -142,10 +142,9 @@ We already created a 'Users' table in the previously chapter. Now we will add a 
 ```sh
 // src/handlers/handlers.c
 
-#include <stdio.h>
-#include "ecewo.h"
-#include "cjson.h"
-#include "src/lib/sqlite3.h"
+#include "router.h"
+#include "jansson.h"
+#include "../lib/sqlite3.h"
 
 extern sqlite3 *db; // THIS IS IMPORTANT TO USE THE DATABASE
 
@@ -162,7 +161,8 @@ void add_user(Req *req, Res *res)
     }
 
     // Parse the body as JSON
-    cJSON *json = cJSON_Parse(body);
+    json_error_t error;
+    json_t *json = json_loads(body, 0, &error);
 
     // If JSON parsing fails, return a 400 Bad Request response
     if (!json)
@@ -172,40 +172,45 @@ void add_user(Req *req, Res *res)
     }
 
     // Extract the 'name', 'surname', and 'username' fields from the JSON object
-    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
-    const char *surname = cJSON_GetObjectItem(json, "surname")->valuestring;
-    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
+    json_t *name_json = json_object_get(json, "name");
+    json_t *username_json = json_object_get(json, "username");
+    json_t *password_json = json_object_get(json, "password");
 
-    // If any of the required fields are missing, delete the JSON object and return a 400 error
-    if (!name || !surname || !username)
+    // If any of the required fields are missing or not strings, clean up and return a 400 error
+    if (!name_json || !username_json || !password_json ||
+        !json_is_string(name_json) || !json_is_string(username_json) || !json_is_string(password_json))
     {
-        cJSON_Delete(json);
-        reply(res, "400 Bad Request", "text/plain", "Missing fields");
+        json_decref(json);
+        reply(res, "400 Bad Request", "text/plain", "Missing or invalid fields");
         return;
     }
 
+    const char *name = json_string_value(name_json);
+    const char *username = json_string_value(username_json);
+    const char *password = json_string_value(password_json);
+
     // SQL query to insert a new user into the database
-    const char *sql = "INSERT INTO users (name, surname, username) VALUES (?, ?, ?);";
+    const char *sql = "INSERT INTO users (name, username, password) VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
 
     // If the SQL preparation fails, return a 500 Internal Server Error
     if (rc != SQLITE_OK)
     {
-        cJSON_Delete(json);
+        json_decref(json);
         reply(res, "500 Internal Server Error", "text/plain", "DB prepare failed");
         return;
     }
 
     // Bind the values to the SQL query
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, surname, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, username, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, username, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, password, -1, SQLITE_STATIC);
 
     // Execute the SQL statement to insert the user
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
-    cJSON_Delete(json);
+    json_decref(json);
 
     // If the insert operation fails, return a 500 error
     if (rc != SQLITE_DONE)
@@ -227,7 +232,7 @@ Add to `handlers.h` too:
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void add_user(Req *req, Res *res);
 
@@ -239,8 +244,8 @@ In `main.c`:
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
@@ -261,9 +266,9 @@ We'll send a request, which has a body like:
 
 ```
 {
-    "name": "John",
-    "surname": "Doe",
+    "name": "John Doe",
     "username": "johndoe",
+    "password": "123123",
 }
 ```
 
@@ -273,9 +278,9 @@ Let's send one more request for the next example:
 
 ```
 {
-    "name": "Jane",
-    "surname": "Doe",
+    "name": "Jane Doe",
     "username": "janedoe",
+    "password": "321321",
 }
 ```
 
@@ -288,10 +293,9 @@ To do this, in `headers.c`:
 ```sh
 // src/handlers/handlers.c
 
-#include <stdio.h>
-#include "ecewo.h"
-#include "cjson.h"
-#include "src/lib/sqlite3.h"
+#include "router.h"
+#include "jansson.h"
+#include "../lib/sqlite3.h"
 
 void get_all_users(Req *req, Res *res)
 {
@@ -306,34 +310,36 @@ void get_all_users(Req *req, Res *res)
         return;
     }
 
-    cJSON *json_array = cJSON_CreateArray();
+    json_t *arr = json_array();
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         const int id = sqlite3_column_int(stmt, 0);                        // 0 is the index of the 'id' column
-        const char *username = (const char *)sqlite3_column_text(stmt, 3); // 3 is the index of the 'username' column
+        const char *name = sqlite3_column_text(stmt, 1);                   // 1 is the index of the 'name' column
+        const char *username = (const char *)sqlite3_column_text(stmt, 2); // 2 is the index of the 'username' column
 
-        cJSON *user_json = cJSON_CreateObject();
-        cJSON_AddNumberToObject(user_json, "id", id);
-        cJSON_AddStringToObject(user_json, "username", username);
+        json_t *user_json = json_object();
+        json_object_set_new(user_json, "id", json_integer(id));
+        json_object_set_new(user_json, "name", json_string(name));
+        json_object_set_new(user_json, "username", json_string(username));
 
-        cJSON_AddItemToArray(json_array, user_json);
+        json_array_append_new(arr, user_json);
     }
 
     if (rc != SQLITE_DONE)
     {
         reply(res, "500 Internal Server Error", "text/plain", "DB step failed");
         sqlite3_finalize(stmt);
+        json_decref(arr);
         return;
     }
 
-    char *json_string = cJSON_PrintUnformatted(json_array);
+    char *json_string = json_dumps(arr, JSON_COMPACT);
 
     reply(res, "200 OK", "application/json", json_string); // Send the response
 
     // Free the allocated memory when we are done:
-
-    cJSON_Delete(json_array);
+    json_decref(arr);
     free(json_string);
     sqlite3_finalize(stmt);
 }
@@ -369,7 +375,7 @@ Now let's define the header of our new handler and use it with the router in `ma
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void get_all_users(Req *req, Res *res);
 
@@ -379,8 +385,8 @@ void get_all_users(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
@@ -399,13 +405,15 @@ Now if we send a request, we'll receive this output:
 
 ```sh
 [
-    {
-        "id": 1,
-        "username": "johndoe"
-    },
-    {
-        "id": 2,
-        "username": "janedoe"
-    }
+  {
+    "id": 1,
+    "name": "John Doe",
+    "username": "johndoe"
+  },
+  {
+    "id": 2,
+    "name": "Jane Doe",
+    "username": "janedoe"
+  }
 ]
 ```

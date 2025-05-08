@@ -3,7 +3,7 @@ title: Handling Requests
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-We can easily access the request's `body`, `params`, `query`, and `headers` by including `"ecewo.h"`. We'll see just basic examples in this chapter.
+We can easily access the request's `body`, `params`, `query`, and `headers` by including `"router.h"`. We'll see just basic examples in this chapter.
 
 Let's see how it basically works.
 
@@ -12,8 +12,7 @@ Let's see how it basically works.
 ```sh
 // src/handlers.c
 
-#include "ecewo.h"
-#include <stdio.h>
+#include "router.h"
 
 void print_body(Req *req, Res *res)
 {
@@ -28,7 +27,7 @@ void print_body(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void print_body(Req *req, Res *res);
 
@@ -38,8 +37,8 @@ void print_body(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 
 int main()
@@ -80,7 +79,7 @@ But first, add `routes.h` the route:
 ```sh
 // src/handlers.c
 
-#include "ecewo.h"
+#include "router.h"
 
 void send_params(Req *req, Res *res)
 {
@@ -102,7 +101,7 @@ void send_params(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void send_params(Req *req, Res *res);
 
@@ -112,8 +111,8 @@ void send_params(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 
 int main()
@@ -131,8 +130,8 @@ We can define more than one slug if we need using the same way. Here is an examp
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 
 int main()
@@ -146,8 +145,7 @@ int main()
 ```sh
 // src/handlers.c
 
-#include <stdio.h>
-#include "ecewo.h"
+#include "router.h"
 
 void print_more_params(Req *req, Res *res)
 {
@@ -172,7 +170,7 @@ void print_more_params(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void print_more_params(Req *req, Res *res);
 
@@ -192,8 +190,8 @@ Like the `params`, we can use `get_req(&req->query, "query")` to get the query. 
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 
 int main()
@@ -207,8 +205,7 @@ int main()
 ```sh
 // src/handlers.c
 
-#include "ecewo.h"
-#include <stdio.h>
+#include "router.h"
 
 void print_query(Req *req, Res *res)
 {
@@ -233,7 +230,7 @@ void print_query(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void print_query(Req *req, Res *res);
 
@@ -270,7 +267,7 @@ Let's say, we need the `User-Agent` header:
 ```sh
 // src/handlers.c
 
-#include "ecewo.h"
+#include "router.h"
 
 void get_user_agent(Req *req, Res *res)
 {
@@ -288,10 +285,11 @@ void get_user_agent(Req *req, Res *res)
 
 ```sh
 // src/handlers.h
+
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void get_user_agent(Req *req, Res *res);
 
@@ -301,8 +299,8 @@ void get_user_agent(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 
 int main()

@@ -3,8 +3,8 @@ title: Using JSON
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-Ecewo supports a powerful built-in JSON library called [cJSON](https://github.com/DaveGamble/cJSON).
-It's easy to get used to using it, allowing us to work with JSON objects effortlessly. For more information, refer to its documentation.
+Ecewo supports a powerful built-in JSON library called [Jansson](https://github.com/akheron/jansson).
+It’s easy to use and allows us to work with JSON objects effortlessly. For more information, refer to the official [Jansson Documentation](https://jansson.readthedocs.io/en/latest/index.html).
 
 ## Creating JSON
 
@@ -13,24 +13,20 @@ Let's write our `hello world` example again, but this time it will send a JSON o
 ```sh
 // src/handlers.c
 
-#include <stdio.h>  // To manage the memory
-#include "ecewo.h"  // To handle the request and send a response
-#include "cjson.h"  // To deal with JSON
+#include "router.h"  // To handle the request and send a response
+#include "jansson.h"  // To deal with JSON
 
 void hello_world(Req *req, Res *res)
 {
     // Create a JSON object
-
-    cJSON *json = cJSON_CreateObject();
+    json_t *json = json_object();
 
     // Add string to the JSON object we just created
-
-    cJSON_AddStringToObject(json, "hello", "world");
+    json_object_set_new(json, "hello", json_string("world"));
 
     // Convert the JSON object to a string
     // It is impossible to send a JSON without printing
-
-    char *json_string = cJSON_PrintUnformatted(json);
+    char *json_string = json_dumps(json, JSON_COMPACT);
 
     // Send the response with 200 status code
     // content-type must be "application/json" to send a json
@@ -38,8 +34,7 @@ void hello_world(Req *req, Res *res)
     reply(res, "200 OK", "application/json", json_string);
 
     // Free the memory that allocated by cJSON
-
-    cJSON_Delete(json);
+    json_decref(json);
     free(json_string);
 }
 ```
@@ -50,7 +45,7 @@ void hello_world(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void hello_world(Req *req, Res *res);
 
@@ -60,8 +55,8 @@ void hello_world(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 
 int main()
@@ -85,9 +80,8 @@ This time, let's take a JSON and print it to console.
 ```sh
 // src/handlers.c
 
-#include <stdio.h>
-#include "ecewo.h"
-#include <cjson.h>
+#include "router.h"
+#include "jansson.h"
 
 void handle_user(Req *req, Res *res)
 {
@@ -99,30 +93,35 @@ void handle_user(Req *req, Res *res)
         return;
     }
 
-    cJSON *json = cJSON_Parse(body);
-
+    cjson_error_t error;
+    json_t *json = json_loads(body, 0, &error);
     if (!json)
     {
         reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
         return;
     }
 
-    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
-    const char *surname = cJSON_GetObjectItem(json, "surname")->valuestring;
-    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
+    json_t *name_obj = json_object_get(json, "name");
+    json_t *surname_obj = json_object_get(json, "surname");
+    json_t *username_obj = json_object_get(json, "username");
 
-    if (!name || !surname || !username)
+    if (!json_is_string(name_obj) || !json_is_string(surname_obj) || !json_is_string(username_obj))
     {
-        cJSON_Delete(json);
+        json_decref(json);
         reply(res, "400 Bad Request", "text/plain", "Missing fields");
         return;
     }
+
+    const char *name = json_string_value(name_obj);
+    const char *surname = json_string_value(surname_obj);
+    const char *username = json_string_value(username_obj);
 
     printf("Name: %s\n", name);
     printf("Surname: %s\n", surname);
     printf("Username: %s\n", username);
 
-    cJSON_Delete(json); // Free the JSON object
+    json_decref(json); // Free the JSON object
+    reply(res, "200", "text/plain", "Success!");
 }
 ```
 
@@ -132,7 +131,7 @@ void handle_user(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo/router.h"
+#include "router.h"
 
 void handle_user(Req *req, Res *res);
 
@@ -142,9 +141,9 @@ void handle_user(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "ecewo/server.h"
-#include "routes.h"
-#include "handlers/handlers.h"
+#include "ecewo.h"
+#include "router.h"
+#include "handlers.h"
 
 int main()
 {

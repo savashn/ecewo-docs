@@ -39,13 +39,12 @@ We have two test users:
 Let's write a `login` handler:
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.c
 
-#include <stdio.h>
-#include "ecewo.h"
-#include <cjson.h>
-#include <session.h>
-#include "src/db.h"
+#include "router.h"
+#include "jansson.h"
+#include "session.h"
+#include "../db/db.h"
 
 extern sqlite3 *db;
 
@@ -59,55 +58,54 @@ void handle_login(Req *req, Res *res)
         return;
     }
 
-    cJSON *json = cJSON_Parse(body);
-
+    json_error_t err;
+    json_t *json = json_loads(body, 0, &err);
     if (!json)
     {
         reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
         return;
     }
 
-    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
-    const char *password = cJSON_GetObjectItem(json, "password")->valuestring;
+    // username ve password alanlarını al
+    json_t *j_username = json_object_get(json, "username");
+    json_t *j_password = json_object_get(json, "password");
 
-    if (!username || !password)
+    if (!json_is_string(j_username) || !json_is_string(j_password))
     {
-        cJSON_Delete(json);
-        reply(res, "400 Bad Request", "text/plain", "Missing fields");
+        json_decref(json);
+        reply(res, "400 Bad Request", "text/plain", "Missing or invalid fields");
         return;
     }
+
+    const char *username = json_string_value(j_username);
+    const char *password = json_string_value(j_password);
 
     const char *sql = "SELECT * FROM users WHERE username = ? AND password = ?";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-
     if (rc != SQLITE_OK)
     {
-        cJSON_Delete(json);
+        json_decref(json);
         reply(res, "500 Internal Server Error", "text/plain", "DB prepare failed");
         return;
     }
 
-    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC); // Bind username as 1st parameter
-    sqlite3_bind_text(stmt, 2, password, -1, SQLITE_STATIC); // Bind password as 2nd parameter
+    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, password, -1, SQLITE_STATIC);
 
-    rc = sqlite3_step(stmt); // Execute the query
-
+    rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW)
     {
-        // If a row is returned from the database, login is successful
-        const char *db_name = (const char *)sqlite3_column_text(stmt, 1); // Get name from column 1
+        const char *db_name = (const char *)sqlite3_column_text(stmt, 1);
 
-        // Successful login:
+        char *sid = create_session();
+        Session *sess = find_session(sid);
 
-        char *sid = create_session();      // Create a session
-        Session *sess = find_session(sid); // Find the created session
+        set_session(sess, "name", db_name);
+        set_session(sess, "username", username);
+        set_session(sess, "theme", "dark");
 
-        set_session(sess, "name", db_name);      // Add user's name
-        set_session(sess, "username", username); // Add user's username
-        set_session(sess, "theme", "dark");      // Add theme option
-
-        set_cookie(res, "session_id", sid, 3600); // Send 1-hour session as cookie
+        set_cookie(res, "session_id", sid, 3600);
 
         printf("Session ID: %s\n", sid);
         printf("Session JSON: %s\n", sess->data);
@@ -116,12 +114,11 @@ void handle_login(Req *req, Res *res)
     }
     else
     {
-        // If no row is returned, credentials are incorrect
         reply(res, "401 Unauthorized", "text/plain", "Invalid username or password");
     }
 
-    sqlite3_finalize(stmt); // Finalize the query
-    cJSON_Delete(json);     // Free the JSON object
+    sqlite3_finalize(stmt);
+    json_decref(json);
 }
 ```
 
@@ -131,7 +128,7 @@ void handle_login(Req *req, Res *res)
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void handle_login(Req *req, Res *res);
 
@@ -141,10 +138,10 @@ void handle_login(Req *req, Res *res);
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
-#include "handlers.h"
-#include "db.h"
+#include "router.h"
+#include "handlers/handlers.h"
+#include "db/db.h"
 
 int main()
 {
@@ -156,14 +153,23 @@ int main()
 }
 ```
 
-If login is successful, a header like `"Cookie": "session_id=VKdbMRbqMhh_40F6ef2FreEba6JqkH16"` will be added to the headers.
+Let's send a request to `http://localhost:4000/login` with that body:
+
+```
+{
+    "username": "janedoe",
+    "password": "321321"
+}
+```
+
+If login is successful, we'll see a **"Login successful!"** response and a header like `"Cookie": "session_id=VKdbMRbqMhh_40F6ef2FreEba6JqkH16"` will be added to the headers.
 
 ## Logout
 
 We also write a logout handler to use after login. Let's add these parts:
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.c
 
 // Add this handler:
 
@@ -172,15 +178,16 @@ void handle_logout(Req *req, Res *res)
     // First, check if the user has session
     Session *sess = get_session(&req->headers);
 
-    if (sess)
+    if (!sess)
     {
-        free_session(sess); // Delete session from the memory
+        reply(res, "400", "text/plain", "You have to login first");
     }
-
-    // Clean the session
-    set_cookie(res, "session_id", "", 0); // Time out cookie, the browser will delete it
-
-    reply(res, "302 Found", "text/plain", "Logged out");
+    else
+    {
+        free_session(sess);                   // Delete session from the memory
+        set_cookie(res, "session_id", "", 0); // Time out cookie, the browser will delete it
+        reply(res, "302 Found", "text/plain", "Logged out");
+    }
 }
 ```
 
@@ -192,7 +199,7 @@ Declare the logout handler too:
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void handle_login(Req *req, Res *res);
 void handle_logout(Req *req, Res *res); // We added now
@@ -205,20 +212,32 @@ And also add to entry point:
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
-#include "handlers.h"
-#include "db.h"
+#include "router.h"
+#include "handlers/handlers.h"
+#include "db/db.h"
 
 int main()
 {
     init_db();
     post("/login", handle_login);
-    post("/logout", handle_logout); // We added it now
+    get("/logout", handle_logout); // We added it now
     ecewo(4000);
     sqlite3_close(db);
     return 0;
 }
+```
+
+Now let's send a request to `http://localhost:4000/logout` after login. `Cookie` header will be deleted and we'll see that response:
+
+```
+Logged out
+```
+
+If we send one more request, we'll see:
+
+```
+You have to login first
 ```
 
 ## Getting Session Data
@@ -226,12 +245,11 @@ int main()
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.c
 
-#include <stdio.h>
-#include "ecewo.h"
-#include <cjson.h>
-#include <session.h>
+#include "router.h"
+#include "cjson.h"
+#include "session.h"
 
 void handle_session_data(Req *req, Res *res)
 {
@@ -239,28 +257,54 @@ void handle_session_data(Req *req, Res *res)
 
     if (!user_session)
     {
-        reply(res, "401 Unauthorized", "application/json", "{\"error\":\"Authentication required\"}");
+        reply(res,
+              "401 Unauthorized",
+              "application/json",
+              "{\"error\":\"Authentication required\"}");
         return;
     }
 
-    cJSON *session_data = cJSON_Parse(user_session->data);
+    /* Parse the JSON string stored in session->data */
+    json_error_t err;
+    json_t *session_data = json_loads(user_session->data, 0, &err);
+    if (!session_data)
+    {
+        /* If parsing fails, return an error */
+        reply(res,
+              "500 Internal Server Error",
+              "application/json",
+              "{\"error\":\"Failed to parse session data\"}");
+        return;
+    }
 
-    char *session_str = cJSON_PrintUnformatted(session_data);
+    /* Serialize back to a compact JSON string */
+    char *session_str = json_dumps(session_data, JSON_COMPACT);
+    if (!session_str)
+    {
+        json_decref(session_data);
+        reply(res,
+              "500 Internal Server Error",
+              "application/json",
+              "{\"error\":\"Failed to serialize session data\"}");
+        return;
+    }
 
+    /* Send the session JSON back to the client */
     reply(res, "200 OK", "application/json", session_str);
 
+    /* Clean up */
     free(session_str);
-    cJSON_Delete(session_data);
+    json_decref(session_data);
 }
 ```
 
 ```sh
-// src/handlers.h
+// src/handlers/handlers.h
 
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "ecewo.h"
+#include "router.h"
 
 void handle_login(Req *req, Res *res);
 void handle_logout(Req *req, Res *res);
@@ -272,8 +316,8 @@ void handle_session_data(Req *req, Res *res); // We added now
 ```sh
 // src/main.c
 
-#include "server.h"
 #include "ecewo.h"
+#include "router.h"
 #include "handlers.h"
 #include "db.h"
 
@@ -306,46 +350,67 @@ Here are the session data, which we have added while the user is logging in.
 If you don't want the whole session data, but just one or two, you can do it as well:
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.c
 
-void handle_session_name_data(Req *req, Res *res)
+void handle_session_data(Req *req, Res *res)
 {
     Session *user_session = get_session(&req->headers);
 
     if (!user_session)
     {
-        reply(res, "401 Unauthorized", "application/json", "{\"error\":\"Authentication required\"}");
+        reply(res,
+              "401 Unauthorized",
+              "application/json",
+              "{\"error\":\"Authentication required\"}");
         return;
     }
 
-    cJSON *session_data = cJSON_Parse(user_session->data);
-
+    /* Parse stored session JSON */
+    json_error_t err;
+    json_t *session_data = json_loads(user_session->data, 0, &err);
     if (!session_data)
     {
-        reply(res, "500 Internal Server Error", "application/json", "{\"error\":\"Invalid session data\"}");
+        reply(res,
+              "500 Internal Server Error",
+              "application/json",
+              "{\"error\":\"Invalid session data\"}");
         return;
     }
 
-    cJSON *name = cJSON_GetObjectItem(session_data, "name");
+    /* Extract \"name\" field */
+    json_t *j_name = json_object_get(session_data, "name");
 
-    cJSON *response = cJSON_CreateObject();
-
-    if (name && name->valuestring)
+    /* Build response object */
+    json_t *response = json_object();
+    if (json_is_string(j_name))
     {
-        cJSON_AddStringToObject(response, "name", name->valuestring);
+        json_object_set_new(response, "name", json_string(json_string_value(j_name)));
     }
     else
     {
-        cJSON_AddStringToObject(response, "name", "Unknown");
+        json_object_set_new(response, "name", json_string("Unknown"));
     }
 
-    char *json_str = cJSON_PrintUnformatted(response);
+    /* Serialize response */
+    char *json_str = json_dumps(response, JSON_COMPACT);
+    if (!json_str)
+    {
+        json_decref(session_data);
+        json_decref(response);
+        reply(res,
+              "500 Internal Server Error",
+              "application/json",
+              "{\"error\":\"Failed to serialize response\"}");
+        return;
+    }
 
+    /* Send it */
     reply(res, "200 OK", "application/json", json_str);
 
+    /* Cleanup */
     free(json_str);
-    cJSON_Delete(session_data);
-    cJSON_Delete(response);
+    json_decref(session_data);
+    json_decref(response);
 }
 ```
 
@@ -362,7 +427,7 @@ The output will be:
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.c
 
 void handle_protected(Req *req, Res *res)
 {
@@ -379,6 +444,30 @@ void handle_protected(Req *req, Res *res)
     // If has, let the user in
     reply(res, "200 OK", "text/plain", "Welcome to the protected area!");
 }
+```
+
+```sh
+// src/handlers/handlers.h
+
+void handle_protected(Req *req, Res *res);
+```
+
+```sh
+// src/main.c
+
+get("/protected", handle_protected);
+```
+
+Let's send a request to `http://localhost:4000/protected`. If we authenticated, we'll see:
+
+```
+Welcome to the protected area!
+```
+
+If we did not, we'll see:
+
+```
+You must be logged in.
 ```
 
 Well, some routes should be for the user's himself only such as Edit Profile page. In that situation, we need to think deeper.
@@ -399,84 +488,109 @@ int main()
 ```
 
 ```sh
-// src/handlers.c
+// src/handlers/handlers.h
+
+void edit_profile(Req *req, Res *res);
+```
+
+```sh
+// src/handlers/handlers.c
 
 void edit_profile(Req *req, Res *res)
 {
     // First, check the user's session
     Session *sess = get_session(&req->headers);
-
-    // If there is no session or it's invalid, return a 401 error
     if (!sess)
     {
-        reply(res, "401 Unauthorized", "application/json", "{\"error\":\"Authentication required\"}");
+        reply(res,
+              "401 Unauthorized",
+              "text/plain",
+              "Authentication required");
         return;
     }
 
-    // Parse session data as JSON
-    cJSON *session_data = cJSON_Parse(sess->data);
-
+    // Parse session data as JSON with Jansson
+    json_error_t err;
+    json_t *session_data = json_loads(sess->data, 0, &err);
     if (!session_data)
     {
-        reply(res, "500 Internal Server Error", "application/json", "{\"error\":\"Invalid session data\"}");
+        reply(res,
+              "500 Internal Server Error",
+              "text/plain",
+              "Invalid session data");
         return;
     }
 
-    cJSON *username = cJSON_GetObjectItem(session_data, "username"); // Get the "username" data from session
-
-    // Compare slug (from params) and session username
-    const char *slug = get_req(&req->params, "slug");
-
-    if (strcmp(slug, username->valuestring) != 0)
+    /* Extract \"username\" field from session */
+    json_t *j_username = json_object_get(session_data, "username");
+    if (!json_is_string(j_username))
     {
-        reply(res, "403 Forbidden", "application/json", "{\"error\":\"Unauthorized: Slug does not match session username\"}");
-        cJSON_Delete(session_data);
+        json_decref(session_data);
+        reply(res,
+              "500 Internal Server Error",
+              "text/plain",
+              "Session missing username");
+        return;
+    }
+    const char *session_username = json_string_value(j_username);
+
+    /* Compare slug param vs session username */
+    const char *slug = get_req(&req->params, "slug");
+    if (!slug || strcmp(slug, session_username) != 0)
+    {
+        json_decref(session_data);
+        reply(res,
+              "403 Forbidden",
+              "text/plain",
+              "Unauthorized: Slug does not match session username");
         return;
     }
 
-    // Now we know that slug and session username match, let's proceed with the query
-    const char *sql = "SELECT id, name FROM users WHERE username = ?;"; // Our SQL query for matching username
-
+    /* Prepare and run SQL */
+    const char *sql = "SELECT id, name FROM users WHERE username = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
         const char *errmsg = sqlite3_errmsg(db);
         char error_msg[256];
-        snprintf(error_msg, sizeof(error_msg), "{\"error\":\"DB error: %s\"}", errmsg);
+        snprintf(error_msg, sizeof(error_msg),
+                 "{\"error\":\"DB error: %s\"}", errmsg);
+        json_decref(session_data);
         reply(res, "500 Internal Server Error", "application/json", error_msg);
-        cJSON_Delete(session_data);
         return;
     }
-
-    sqlite3_bind_text(stmt, 1, slug, -1, SQLITE_STATIC); // Binding slug to the query
+    sqlite3_bind_text(stmt, 1, slug, -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);
-
     if (rc == SQLITE_ROW)
     {
-        const int id = sqlite3_column_int(stmt, 0);                    // 0 is the index of the 'id' column
-        const char *name = (const char *)sqlite3_column_text(stmt, 1); // 1 is the index of the 'name' column
+        int id = sqlite3_column_int(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
 
-        cJSON *user_json = cJSON_CreateObject();
-        cJSON_AddNumberToObject(user_json, "id", id);
-        cJSON_AddStringToObject(user_json, "name", name);
+        /* Build JSON response with Jansson */
+        json_t *user_json = json_object();
+        json_object_set_new(user_json, "id", json_integer(id));
+        json_object_set_new(user_json, "name", json_string(name));
 
-        char *json_string = cJSON_PrintUnformatted(user_json);
+        char *json_string = json_dumps(user_json, JSON_COMPACT);
         reply(res, "200 OK", "application/json", json_string);
 
-        cJSON_Delete(user_json); // free cJSON memory
-        free(json_string);       // free json_string memory
+        free(json_string);
+        json_decref(user_json);
     }
     else
     {
-        reply(res, "404 Not Found", "application/json", "{\"error\":\"User not found\"}");
+        reply(res,
+              "404 Not Found",
+              "text/plain",
+              "User not found");
     }
 
-    sqlite3_finalize(stmt);     // free sql memory
-    cJSON_Delete(session_data); // free session_data memory
-    free_req(&req->params);     // free req memory
+    /* Cleanup */
+    sqlite3_finalize(stmt);
+    json_decref(session_data);
+    free_req(&req->params);
 }
 ```
 
@@ -486,7 +600,7 @@ If we try without any authorization, we'll get that response:
 
 ```sh
 {
-    "error": "Authentication required"
+    Authentication required
 }
 ```
 
@@ -494,11 +608,11 @@ If we try to reach that page as someone who is not johndoe, we'll receive:
 
 ```sh
 {
-    "error": "Unauthorized: Slug does not match session username"
+    Unauthorized: Slug does not match session username
 }
 ```
 
-When we signed in as johndoe and send a request again, here is what we will get:
+When we logged in as johndoe and send a request again, here is what we will get:
 
 ```sh
 {
