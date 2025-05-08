@@ -1,9 +1,9 @@
 ---
 title: Authentication
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-ecewo offers some session management APIs for authentication and authorization:
+Ecewo offers some session management APIs for authentication and authorization:
 
 - `set_cookie()` to set cookie
 - `create_session()` to create a session
@@ -517,6 +517,6 @@ It's not safe to insert the password to the database without encryption. You sho
 
 In these examples, session is stored in memory, but you can store them in the database if you prefer.
 
-If you store them in the memory, you will use `free_session()` API for rare operations like logout. ecewo will free the expired sessions when a new session is created.
+If you store them in the memory, you will use `free_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
 
 But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.

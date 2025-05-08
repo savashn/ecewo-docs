@@ -1,6 +1,6 @@
 ---
 title: Route Handling
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
 We successfully ran our server in the previous chapter. Now we can start to receive requests and send responses.

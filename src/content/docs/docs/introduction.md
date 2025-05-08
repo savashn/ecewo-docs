@@ -1,9 +1,9 @@
 ---
 title: Introduction
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-ecewo is a minimal HTTP framework for C. It takes the hard part of C programming for you and lets you build your backend easily.
+Ecewo is a modern and developer-friendly backend framework for C that handles the complexities of C programming and lets you build backends with ease — inspired by the simplicity of Express.js.
 
 ## Table of Contents
 
@@ -40,6 +40,16 @@ ecewo is a minimal HTTP framework for C. It takes the hard part of C programming
     - 6.4 [Protected Routes](/docs/authentication#protected-routes)
     - 6.5 [Notes](/docs/authentication#notes)
 7. [Middleware](/docs/middleware)
-    - 7.1 [Route Middleware](/docs/middleware#route-middleware)
+    - 7.1 [Route Specific Middleware](/docs/middleware#route-specific-middleware)
     - 7.2 [Global Middleware](/docs/middleware#global-middleware)
 8. [Environment Variables](/docs/environment-variables)
+9. [Async Operations](/docs/async-operations)
+    - 9.1 [The Async Logic](/docs/async-operations/the-async-logic)
+    - 9.2 [Example Usage](/docs/async-operations/example-usage)
+        - 9.2.1 [Step 1: Create A Context Structure](/docs/async-operations#step-1-create-a-context-structure)
+        - 9.2.2 [Step 2: Create An Entry Point](/docs/async-operations#step-2-create-an-entry-point)
+        - 9.2.3 [Step 3: Write The First Operation](http://localhost:4321/docs/async-operations#step-3-write-the-first-operation)
+        - 9.2.4 [Step 4: Write The Second Operation](http://localhost:4321/docs/async-operations#step-4-write-the-second-operation)
+        - 9.2.5 [Step 5: Write The free_async() Function](/docs/async-operations#step-5-write-the-free_async-function)
+        - 9.2.6 [Final View](/docs/async-operations#final-view)
+        - 9.2.7 [Test](/docs/async-operations#test)

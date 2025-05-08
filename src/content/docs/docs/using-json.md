@@ -1,9 +1,9 @@
 ---
 title: Using JSON
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-ecewo supports a powerful built-in JSON library called [cJSON](https://github.com/DaveGamble/cJSON).
+Ecewo supports a powerful built-in JSON library called [cJSON](https://github.com/DaveGamble/cJSON).
 It's easy to get used to using it, allowing us to work with JSON objects effortlessly. For more information, refer to its documentation.
 
 ## Creating JSON

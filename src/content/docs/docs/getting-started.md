@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
 ## Requirements
@@ -11,7 +11,7 @@ description: Documentation of ecewo - A minimal HTTP framework for C.
 
 ## Installation
 
-Since ecewo doesn't use any package manager (yet), all you need to do is clone this repo to use it. Follow these steps to clone:
+Since Ecewo doesn't use any package manager (yet), all you need to do is clone this repo to use it. Follow these steps to clone:
 
 ```
 git clone https://github.com/savashn/ecewo.git

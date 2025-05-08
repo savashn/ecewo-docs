@@ -1,9 +1,9 @@
 ---
 title: Documentation
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo - A modern web framework for C.
 template: splash
 hero:
-  tagline: A minimal HTTP framework for C that handles the complexities of C programming and helps you build your backend with ease.
+  tagline: A modern microframework for web development in C.
   image:
     file: ../../../public/favicon.svg
   actions:
@@ -18,17 +18,38 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
+<p style="font-size: 1.5rem; text-align: center; margin-top: 5rem; margin-top: 3rem;">Built for modern backend development in C — inspired by the simplicity of Express.js</p>
+<br/>
+---
+<br/>
+
 <CardGrid stagger>
-	<Card title="Written in C" icon="seti:c">
-		So it's fast and lightweight, but also easy to use.
+	<Card title="Async Support" icon="seti:c">
+		Ecewo is built on [libuv](https://github.com/libuv/libuv), a native C library designed for non-blocking asynchronous I/O operations and originally developed for Node.js.
 	</Card>
 
-	<Card title="Built-in JSON" icon="seti:json">
-		It's so easy to play with JSON objects with [cJSON](https://github.com/DaveGamble/cJSON).
+  <Card title="Inspired By Express.js" icon="node">
+		Ecewo takes Express.js as an example and lets you build your backends easily, handling the complexities of C programming.
 	</Card>
 
-	<Card title="Read the docs" icon="open-book">
-		Start from [Getting Started](/docs/introduction) page to read the documentation.
+	<Card title="Built-in JSON Support" icon="seti:json">
+		So it's so easy to play with JSON objects with [cJSON](https://github.com/DaveGamble/cJSON).
+	</Card>
+
+  <Card title="Middleware Structure" icon="puzzle">
+		Express.js-style route-specific and global middlewares are supported.
+	</Card>
+
+  <Card title="Env Configuration" icon="setting">
+		Ecewo has built-in .env file parser, which is [dotenv-c](https://github.com/Isty001/dotenv-c).
+	</Card>
+
+  <Card title="Authentication Mechanism" icon="seti:lock">
+		You can easily do authentication and authorization using the build-in session management mechanism.
+	</Card>
+
+	<Card title="Read The Docs" icon="open-book">
+		Start from [Introduction](/docs/introduction) page to read the documentation.
 	</Card>
 
 	<Card title="Star on Github" icon="star">
@@ -49,6 +70,6 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
   <br /><br />
 
-  <p style={{fontSize: '2rem'}}>v0.14.0</p>
+  <p style={{fontSize: '2rem'}}>v0.15.0</p>
   <div>Copyright 2025 &copy; <a href="https://github.com/savashn">Savas Sahin</a></div>
 </div>

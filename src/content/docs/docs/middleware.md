@@ -1,11 +1,11 @@
 ---
 title: Middleware
-description: Documentation of ecewo - A minimal HTTP framework for C.
+description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-ecewo provides a middleware feauture, which looks like express.js. Let's see how they work.
+Ecewo provides a middleware feauture, which looks like Express.js. Let's see how they work.
 
-## Route Middleware
+## Route Specific Middleware
 
 Let's say we have two handlers, one for users and one for admin.
 
@@ -81,7 +81,7 @@ int admin(Req *req, Res *res, Chain *chain)
 
 At the end of a middleware, you must call `next()` —just like in Express.js— to proceed to the handler.
 
-We have a `MW()` macro to call the middleware before the handler.
+We have a `use()` macro to call the middleware before the handler.
 
 ```sh
 // src/main.c
@@ -94,8 +94,8 @@ We have a `MW()` macro to call the middleware before the handler.
 int main()
 {
     get("/", home_handler); // Works without middleware
-    get("/user", MW(auth), users_handler);  // Runs auth middleware first, then the handler
-    get("/admin", MW(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
+    get("/user", use(auth), users_handler);  // Runs auth middleware first, then the handler
+    get("/admin", use(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
 
     ecewo(4000);  // Start the server on port 4000
     free_mw();    // Free allocated middleware memory
@@ -105,7 +105,7 @@ int main()
 
 ## Global Middleware
 
-We have `use()` API to define global middlewares. Let's implement a `logger` in `middlewares.c` apply it before every handler.
+We have `hook()` API to define global middlewares. Let's implement a `logger` in `middlewares.c` apply it before every handler.
 
 ```sh
 // src/middlewares.c
@@ -142,11 +142,11 @@ int logger(Req *req, Res *res, Chain *chain);
 
 int main()
 {
-    use(simple_logger); // Runs for all routes, before handlers
+    hook(simple_logger); // Runs for all routes, before handlers
 
     get("/", home_handler);
-    get("/user", MW(auth), users_handler);
-    get("/admin", MW(auth, admin), admin_handler);
+    get("/user", use(auth), users_handler);
+    get("/admin", use(auth, admin), admin_handler);
 
     ecewo(3000);
     free_mw();
