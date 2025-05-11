@@ -119,7 +119,7 @@ int init_db();
 ```sh
 // src/main.c
 
-#include "ecewo.h"
+#include "server.h"
 #include "db/db.h"
 
 int main()
@@ -140,9 +140,22 @@ Now we can rebuild our program. If everything went OK, a `db.sql` file containin
 We already created a 'Users' table in the previously chapter. Now we will add a user to it. Let's begin with writing our POST handler:
 
 ```sh
+// src/handlers/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void add_user(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 #include "jansson.h"
 #include "../lib/sqlite3.h"
 
@@ -224,37 +237,21 @@ void add_user(Req *req, Res *res)
 }
 ```
 
-Add to `handlers.h` too:
-
-```sh
-// src/handlers/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void add_user(Req *req, Res *res);
-
-#endif
-```
-
-In `main.c`:
-
 ```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
 int main()
 {
+    init_router();
     init_db();
     post("/user", add_user);
     ecewo(4000);
     sqlite3_close(db);
+    free_router();
     return 0;
 }
 ```
@@ -288,12 +285,25 @@ Let's send one more request for the next example:
 
 Now we'll write a handler function that gives us these two users' information.
 But let's say that "name" and "surname" fields are not required for us, so we need "id" and "username" fields only.
-To do this, in `headers.c`:
+To do this:
+
+```sh
+// src/handlers/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void get_all_users(Req *req, Res *res);
+
+#endif
+```
 
 ```sh
 // src/handlers/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 #include "jansson.h"
 #include "../lib/sqlite3.h"
 
@@ -350,6 +360,7 @@ void get_all_users(Req *req, Res *res)
 We could have used a `for` loop too, but it would be more complicated and less readable.
 
 If we had written it with a `for` loop, it would look like this:
+
 ```sh
 for (rc = sqlite3_step(stmt); rc == SQLITE_ROW; rc = sqlite3_step(stmt))
 {
@@ -358,6 +369,7 @@ for (rc = sqlite3_step(stmt); rc == SQLITE_ROW; rc = sqlite3_step(stmt))
 ```
 
 ... instead of this:
+
 ```sh
 while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
 {
@@ -367,36 +379,22 @@ while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
 
 You can use `for` loop if you want, but `while` loop is more readable for this job as you can see.
 
-Now let's define the header of our new handler and use it with the router in `main.c`:
-
-```sh
-// src/handlers/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void get_all_users(Req *req, Res *res);
-
-#endif
-```
-
 ```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
 int main()
 {
+    init_router();
     init_db();
     post("/user", add_user);
     get("/users", get_all_users);
     ecewo(4000);
     sqlite3_close(db);
+    free_router();
     return 0;
 }
 ```

@@ -3,8 +3,6 @@ title: Introduction
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-Ecewo is a modern and developer-friendly backend framework for C that handles the complexities of C programming and lets you build backends with ease — inspired by the simplicity of Express.js.
-
 ## Table of Contents
 
 1. [Getting Started](/docs/getting-started)
@@ -28,7 +26,7 @@ Ecewo is a modern and developer-friendly backend framework for C that handles th
 5. [Using A Database](/docs/using-a-database)
     - 5.1 [Install SQLite](/docs/using-a-database#install-sqlite)
     - 5.2 [Example Folder Structure](/docs/using-a-database#example-folder-structure)
-    - 5.3 [Change The Makefile](/docs/using-a-database#change-the-makefile)
+    - 5.3 [Update CMake](/docs/using-a-database#update-cmake)
     - 5.4 [Connecting To Database](/docs/using-a-database#connecting-to-database)
     - 5.5 [Example Usage](/docs/using-a-database#example-usage)
         - 5.5.1 [Inserting Data](/docs/using-a-database#inserting-data)
@@ -36,7 +34,7 @@ Ecewo is a modern and developer-friendly backend framework for C that handles th
 6. [Authentication](/docs/authentication)
     - 6.1 [Login](/docs/authentication#login)
     - 6.2 [Logout](/docs/authentication#logout)
-    - 6.3 [Getting session data](/docs/authentication#getting-session-data)
+    - 6.3 [Getting Session Data](/docs/authentication#getting-session-data)
     - 6.4 [Protected Routes](/docs/authentication#protected-routes)
     - 6.5 [Notes](/docs/authentication#notes)
 7. [Middleware](/docs/middleware)

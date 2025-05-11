@@ -11,10 +11,23 @@ It’s easy to use and allows us to work with JSON objects effortlessly. For mor
 Let's write our `hello world` example again, but this time it will send a JSON object instead of a plain text.
 
 ```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void hello_world(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers.c
 
-#include "router.h"  // To handle the request and send a response
-#include "jansson.h"  // To deal with JSON
+#include "handlers.h"   // To handle the request and send a response
+#include "jansson.h"    // To deal with JSON
 
 void hello_world(Req *req, Res *res)
 {
@@ -25,7 +38,6 @@ void hello_world(Req *req, Res *res)
     json_object_set_new(json, "hello", json_string("world"));
 
     // Convert the JSON object to a string
-    // It is impossible to send a JSON without printing
     char *json_string = json_dumps(json, JSON_COMPACT);
 
     // Send the response with 200 status code
@@ -33,36 +45,24 @@ void hello_world(Req *req, Res *res)
 
     reply(res, "200 OK", "application/json", json_string);
 
-    // Free the memory that allocated by cJSON
+    // Free the memory that allocated by jansson
     json_decref(json);
     free(json_string);
 }
 ```
 
 ```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void hello_world(Req *req, Res *res);
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     get("/", hello_world);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```
@@ -78,9 +78,22 @@ Now we can recompile and send a request to `http://localhost:4000/` again. We'll
 This time, let's take a JSON and print it to console.
 
 ```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void handle_user(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 #include "jansson.h"
 
 void handle_user(Req *req, Res *res)
@@ -93,7 +106,7 @@ void handle_user(Req *req, Res *res)
         return;
     }
 
-    cjson_error_t error;
+    json_error_t error;
     json_t *json = json_loads(body, 0, &error);
     if (!json)
     {
@@ -126,29 +139,17 @@ void handle_user(Req *req, Res *res)
 ```
 
 ```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void handle_user(Req *req, Res *res);
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     post("/user", handle_user);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```

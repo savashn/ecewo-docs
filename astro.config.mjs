@@ -30,6 +30,12 @@ export default defineConfig({
 						{ label: 'Environment Variables', slug: 'docs/environment-variables' },
 						{ label: 'Async Operations', slug: 'docs/async-operations' }
 					]
+				},
+				{
+					label: 'FAQ',
+					items: [
+						{ label: 'Frequently Asked Questions', slug: 'docs/faq' }
+					]
 				}
 			],
 		}),

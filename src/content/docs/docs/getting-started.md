@@ -11,7 +11,7 @@ description: Documentation of Ecewo — A modern microframework for web developm
 
 ## Installation
 
-Since Ecewo doesn't use any package manager (yet), all you need to do is clone this repo to use it. Follow these steps to clone:
+Since Ecewo doesn't use neither a package manager nor CLI (yet), all you need to do is clone this repo and make some manual configurations to use it. Follow these steps to clone:
 
 ```
 git clone https://github.com/savashn/ecewo.git
@@ -43,7 +43,7 @@ Let’s configure a basic `main.c` file to start server first:
 ```sh
 // src/main.c
 
-#include "ecewo.h"
+#include "server.h"
 
 int main()
 {
@@ -52,7 +52,7 @@ int main()
 }
 ```
 
-The `ecewo.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a parameter, which is the `PORT`.
+The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a `PORT` parameter of type `unsigned short`.
 
 Now we need a `CMakeLists.txt` file to compile our program. So let's create one:
 
@@ -77,37 +77,28 @@ In the root directory, there are two script files that allow us to build and run
 Linux / macOS:
 
 ```
-# 1. Automatically:
-
 chmod +x build.sh
 ./build.sh
-```
-
-```
-# 2. Manually:
-
-mkdir -p build && cd build
-cmake ..
-cmake --build .
-./server
 ```
 
 Windows:
 
 ```
-# 1. Automatically:
-
 ./build.bat
 ```
 
-```
-# 2. Manually:
+**Building from scratch:**
 
-if not exist build mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-Release\server.exe
+```
+# Linux/macOS
+
+./build.sh --rebuild`
+```
+
+```
+# Windows:
+
+./build.bat /rebuild
 ```
 
 When we ran the suitable command; we’ll see following informations if our server is ready:

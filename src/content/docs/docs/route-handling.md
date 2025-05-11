@@ -7,20 +7,35 @@ We successfully ran our server in the previous chapter. Now we can start to rece
 
 ## Handlers
 
-Let's begin with classics; writing a `hello world` handler. First, create a `handlers.c` and `handlers.h` files in the `src/` directory:
+Let's begin with classics; writing a `hello world` handler. First, create a `handlers.c` and `handlers.h` files in the `src/` directory.
+
+```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void hello_world(Req *req, Res *res);
+
+#endif
+```
+
+We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, `reply()` and many others— used for writing handlers and routers.
+
+Now let's write the handler:
 
 ```sh
 // src/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 
 void hello_world(Req *req, Res *res)
 {
     reply(res, "200 OK", "text/plain", "hello world!");
 }
 ```
-
-We include `"router.h"` header, which is the main module of our project. It provides various HTTP tools — such as `Req`, `Res` and `reply()` — used for writing handlers and routers.
 
 We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `reply()` is using for sending a response to the client.
 
@@ -30,22 +45,7 @@ When we are done with the handler, we should send a response to the client via `
 - Content-Type,
 - Response body
 
-Now we must declare this handler function in a `.h` file —  just like we always do when writing in C. We already created a `handlers.h` along with `handlers.c` file.
-
-```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void hello_world(Req *req, Res *res);
-
-#endif
-```
-
-We declared our handler function but we are not done yet. We need to add `handlers.c` file to our `CMakeLists.txt` to compile it.
+We wrote and declared our handler function but we are not done yet. We need to add `handlers.c` file to our `CMakeLists.txt` to compile it.
 
 ```
 // src/CMakeLists.txt
@@ -69,22 +69,22 @@ We can create our routers with `get()`, `post()`, `put()` and `del()` methods. L
 ```sh
 // src/main.c
 
-#include "ecewo.h"     // This is for starting server
-#include "router.h"      // This is for routing
-#include "handlers.h"   // This is our handlers
+#include "server.h"     // This is for starting server
+#include "handlers.h"   // This includes our handlers and "ecewo.h"
 
 int main()
 {
-    get("/", hello_world); // "GET" router for hello_world handler
-
-    ecewo(4000);    // Start server
-    return 0;   // Exit main function
+    init_router();          // Initialize routers
+    get("/", hello_world);  // "GET" router for hello_world handler
+    ecewo(4000);            // Start server
+    free_router();          // Free memory allocated by routers
+    return 0;               // Exit main function
 }
 ```
 
 `get()`, `post()`, `put()` and `del()` takes two parameters. First one is the path and second one is the handler.
 
-Now we can recompile our program and go to `http://localhost:4000/` again. We'll receive this:
+Now we can build our program and go to `http://localhost:4000/` again. We'll receive this:
 
 ```
 hello world!

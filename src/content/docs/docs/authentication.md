@@ -11,7 +11,7 @@ Ecewo offers some session management APIs for authentication and authorization:
 - `get_session()` to get the session from request
 - `free_session()` to delete the session from memory
 
-With the power of these APIs and cJSON, we can easily manage the authentication and authorization.
+With the power of these APIs, we can easily manage the authentication and authorization.
 
 Let's make an authentication example and see how it works.
 
@@ -39,9 +39,22 @@ We have two test users:
 Let's write a `login` handler:
 
 ```sh
+// src/handlers/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void handle_login(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 #include "jansson.h"
 #include "session.h"
 #include "../db/db.h"
@@ -123,32 +136,20 @@ void handle_login(Req *req, Res *res)
 ```
 
 ```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void handle_login(Req *req, Res *res);
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
 int main()
 {
+    init_router();
     init_db();
     post("/login", handle_login);
     ecewo(4000);
     sqlite3_close(db);
+    free_router();
     return 0;
 }
 ```
@@ -194,12 +195,12 @@ void handle_logout(Req *req, Res *res)
 Declare the logout handler too:
 
 ```sh
-// src/handlers.h
+// src/handlers/handlers.h
 
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "router.h"
+#include "ecewo.h"
 
 void handle_login(Req *req, Res *res);
 void handle_logout(Req *req, Res *res); // We added now
@@ -212,18 +213,19 @@ And also add to entry point:
 ```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
 
 int main()
 {
+    init_router();
     init_db();
     post("/login", handle_login);
     get("/logout", handle_logout); // We added it now
     ecewo(4000);
     sqlite3_close(db);
+    free_router();
     return 0;
 }
 ```
@@ -245,10 +247,25 @@ You have to login first
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
 ```sh
+// src/handlers/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void handle_login(Req *req, Res *res);
+void handle_logout(Req *req, Res *res);
+void handle_session_data(Req *req, Res *res); // We added now
+
+#endif
+```
+
+```sh
 // src/handlers/handlers.c
 
-#include "router.h"
-#include "cjson.h"
+#include "handlers.h"
+#include "jansson.h"
 #include "session.h"
 
 void handle_session_data(Req *req, Res *res)
@@ -299,36 +316,22 @@ void handle_session_data(Req *req, Res *res)
 ```
 
 ```sh
-// src/handlers/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void handle_login(Req *req, Res *res);
-void handle_logout(Req *req, Res *res);
-void handle_session_data(Req *req, Res *res); // We added now
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
-#include "handlers.h"
-#include "db.h"
+#include "server.h"
+#include "handlers/handlers.h"
+#include "db/db.h"
 
 int main()
 {
+    init_router();
     init_db();
     get("/session", handle_session_data); // We added it now
     post("/login", handle_login);
     post("/logout", handle_logout);
     ecewo(4000);
     sqlite3_close(db);
+    free_router();
     return 0;
 }
 ```
@@ -427,6 +430,12 @@ The output will be:
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
 ```sh
+// src/handlers/handlers.h
+
+void handle_protected(Req *req, Res *res);
+```
+
+```sh
 // src/handlers/handlers.c
 
 void handle_protected(Req *req, Res *res)
@@ -444,12 +453,6 @@ void handle_protected(Req *req, Res *res)
     // If has, let the user in
     reply(res, "200 OK", "text/plain", "Welcome to the protected area!");
 }
-```
-
-```sh
-// src/handlers/handlers.h
-
-void handle_protected(Req *req, Res *res);
 ```
 
 ```sh

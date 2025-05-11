@@ -60,7 +60,7 @@ The example will be a very basic calculator that receives a number from `req->pa
 ```sh
 // src/async_handler.c
 
-#include "router.h" // For our handler, which is the entry point
+#include "ecewo.h" // For our handler, which is the entry point
 #include "async.h"  // For asynchronous operations
 
 // Context for chained operations
@@ -217,7 +217,7 @@ In the end, the `async_handler.c` file should look like this:
 
 ```sh
 #include "async.h"
-#include "router.h"
+#include "ecewo.h"
 
 // Context for chained operations
 typedef struct
@@ -347,7 +347,7 @@ set(APP_SRC
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include "router.h"
+#include "ecewo.h"
 
 void calculate(Req *req, Res *res); // Our entry point
 
@@ -357,14 +357,15 @@ void calculate(Req *req, Res *res); // Our entry point
 ```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     get("/calculate/:num", calculate);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```

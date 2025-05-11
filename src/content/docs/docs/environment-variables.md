@@ -28,7 +28,8 @@ Let's parse it in `main.c`:
 ```sh
 //src/main.c
 
-#include "ecewo.h"
+#include <stdio.h>
+#include "server.h"
 #include "dotenv.h"
 
 int main()
@@ -49,7 +50,7 @@ For example, `ecewo()` takes an `unsigned short` type variable. So, if we want t
 ```sh
 // src/main.c
 
-#include "ecewo.h"
+#include "server.h"
 #include "dotenv.h"
 
 int main()

@@ -3,16 +3,29 @@ title: Handling Requests
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-We can easily access the request's `body`, `params`, `query`, and `headers` by including `"router.h"`. We'll see just basic examples in this chapter.
+We can easily access the request's `body`, `params`, `query`, and `headers` from `req`. We'll see just basic examples in this chapter.
 
 Let's see how it basically works.
 
 ## Request Body
 
 ```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void print_body(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 
 void print_body(Req *req, Res *res)
 {
@@ -22,29 +35,17 @@ void print_body(Req *req, Res *res)
 ```
 
 ```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void print_body(Req *req, Res *res);
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
-#include "handlers.h"
+#include "server.h"
+#include "handlers.h"   // "ecewo.h" already comes from here
 
 int main()
 {
+    init_router();
     post("/print-body", print_body);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```
@@ -69,17 +70,29 @@ Body: {
 }
 ```
 
-For more advanced usage; see the [Using cJSON](/docs/using-cjson) chapter.
+For more advanced usage; see [Using JSON](/docs/using-json) chapter.
 
 ## Request Params
 
 Let's take a specific user by params. We can access the params using the `get_req(&req->params, "params")` API. Let's write a handler that gives us the "slug":
-But first, add `routes.h` the route:
+
+```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void send_params(Req *req, Res *res);
+
+#endif
+```
 
 ```sh
 // src/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 
 void send_params(Req *req, Res *res)
 {
@@ -96,56 +109,58 @@ void send_params(Req *req, Res *res)
 ```
 
 ```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void send_params(Req *req, Res *res);
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     get("/send-params/:slug", send_params);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```
 
-Recompile the program and send a request to `http://localhost:4000/send-params/testslug`. Server will send us `testslug`.
+Recompile the program and send a request to `http://localhost:4000/send-params/testslug`. Server will send us `testslug` response.
 
 We can define more than one slug if we need using the same way. Here is an example:
 
 ```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     get("/print-more-params/:key/and/:value");
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```
 
 ```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void print_more_params(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 
 void print_more_params(Req *req, Res *res)
 {
@@ -164,19 +179,6 @@ void print_more_params(Req *req, Res *res)
 }
 ```
 
-```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void print_more_params(Req *req, Res *res);
-
-#endif
-```
-
 If we go to `http://localhost:4000/print-more-params/foo/and/bar` path, we'll receive a `Success!` response and see the `foo` and `bar` in the console:
 
 ```
@@ -190,22 +192,36 @@ Like the `params`, we can use `get_req(&req->query, "query")` to get the query. 
 ```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     get("/print-query", print_query);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```
 
 ```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void print_query(Req *req, Res *res);
+
+#endif
+```
+
+```sh
 // src/handlers.c
 
-#include "router.h"
+#include "ecewo.h"
 
 void print_query(Req *req, Res *res)
 {
@@ -224,19 +240,6 @@ void print_query(Req *req, Res *res)
 }
 ```
 
-```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void print_query(Req *req, Res *res);
-
-#endif
-```
-
 Let's recompile the program and send a request to `http://localhost:4000/print-query?name=john&surname=doe`. We'll receive a `Success!` responseand the query strings will be printed in the console:
 
 ```
@@ -246,7 +249,7 @@ Name: john Surname: doe
 ## Request Headers
 
 Just like `params` and `query`, we can also access request headers using the `get_req(&req->headers, "header")` API.
-ecewo also provides different APIs for authorization and session-based authentication.
+Ecewo also provides different APIs for authorization and session-based authentication.
 However, if you simply want to access a specific item in `req->headers`, you can do so directly.
 
 Typically, a standard `GET` request with `POSTMAN` have some headers like:
@@ -265,9 +268,23 @@ Typically, a standard `GET` request with `POSTMAN` have some headers like:
 Let's say, we need the `User-Agent` header:
 
 ```sh
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void get_user_agent(Req *req, Res *res);
+
+#endif
+```
+
+
+```sh
 // src/handlers.c
 
-#include "router.h"
+#include "handlers.h"
 
 void get_user_agent(Req *req, Res *res)
 {
@@ -284,29 +301,17 @@ void get_user_agent(Req *req, Res *res)
 ```
 
 ```sh
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "router.h"
-
-void get_user_agent(Req *req, Res *res);
-
-#endif
-```
-
-```sh
 // src/main.c
 
-#include "ecewo.h"
-#include "router.h"
+#include "server.h"
 #include "handlers.h"
 
 int main()
 {
+    init_router();
     get("/header", get_user_agent);
     ecewo(4000);
+    free_router();
     return 0;
 }
 ```
