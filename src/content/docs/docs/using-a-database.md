@@ -169,7 +169,7 @@ void add_user(Req *req, Res *res)
     // If there is no body, return a 400 Bad Request response
     if (body == NULL)
     {
-        reply(res, "400 Bad Request", "text/plain", "Missing request body");
+        reply(res, 400, "text/plain", "Missing request body");
         return;
     }
 
@@ -180,7 +180,7 @@ void add_user(Req *req, Res *res)
     // If JSON parsing fails, return a 400 Bad Request response
     if (!json)
     {
-        reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
+        reply(res, 400, "text/plain", "Invalid JSON");
         return;
     }
 
@@ -194,7 +194,7 @@ void add_user(Req *req, Res *res)
         !json_is_string(name_json) || !json_is_string(username_json) || !json_is_string(password_json))
     {
         json_decref(json);
-        reply(res, "400 Bad Request", "text/plain", "Missing or invalid fields");
+        reply(res, 400, "text/plain", "Missing or invalid fields");
         return;
     }
 
@@ -211,7 +211,7 @@ void add_user(Req *req, Res *res)
     if (rc != SQLITE_OK)
     {
         json_decref(json);
-        reply(res, "500 Internal Server Error", "text/plain", "DB prepare failed");
+        reply(res, 500, "text/plain", "DB prepare failed");
         return;
     }
 
@@ -228,12 +228,12 @@ void add_user(Req *req, Res *res)
     // If the insert operation fails, return a 500 error
     if (rc != SQLITE_DONE)
     {
-        reply(res, "500 Internal Server Error", "text/plain", "DB insert failed");
+        reply(res, 500, "text/plain", "DB insert failed");
         return;
     }
 
     // If everything is successful, return a 201 Created response
-    reply(res, "201 Created", "text/plain", "User created!");
+    reply(res, 201, "text/plain", "User created!");
 }
 ```
 
@@ -316,7 +316,7 @@ void get_all_users(Req *req, Res *res)
 
     if (rc != SQLITE_OK)
     {
-        reply(res, "500 Internal Server Error", "text/plain", "DB prepare failed");
+        reply(res, 500, "text/plain", "DB prepare failed");
         return;
     }
 
@@ -338,7 +338,7 @@ void get_all_users(Req *req, Res *res)
 
     if (rc != SQLITE_DONE)
     {
-        reply(res, "500 Internal Server Error", "text/plain", "DB step failed");
+        reply(res, 500, "text/plain", "DB step failed");
         sqlite3_finalize(stmt);
         json_decref(arr);
         return;
@@ -346,7 +346,7 @@ void get_all_users(Req *req, Res *res)
 
     char *json_string = json_dumps(arr, JSON_COMPACT);
 
-    reply(res, "200 OK", "application/json", json_string); // Send the response
+    reply(res, 200, "application/json", json_string); // Send the response
 
     // Free the allocated memory when we are done:
     json_decref(arr);

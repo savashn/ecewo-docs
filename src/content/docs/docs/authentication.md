@@ -67,7 +67,7 @@ void handle_login(Req *req, Res *res)
 
     if (body == NULL)
     {
-        reply(res, "400 Bad Request", "text/plain", "Missing request body");
+        reply(res, 400, "text/plain", "Missing request body");
         return;
     }
 
@@ -75,7 +75,7 @@ void handle_login(Req *req, Res *res)
     json_t *json = json_loads(body, 0, &err);
     if (!json)
     {
-        reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
+        reply(res, 400, "text/plain", "Invalid JSON");
         return;
     }
 
@@ -86,7 +86,7 @@ void handle_login(Req *req, Res *res)
     if (!json_is_string(j_username) || !json_is_string(j_password))
     {
         json_decref(json);
-        reply(res, "400 Bad Request", "text/plain", "Missing or invalid fields");
+        reply(res, 400, "text/plain", "Missing or invalid fields");
         return;
     }
 
@@ -99,7 +99,7 @@ void handle_login(Req *req, Res *res)
     if (rc != SQLITE_OK)
     {
         json_decref(json);
-        reply(res, "500 Internal Server Error", "text/plain", "DB prepare failed");
+        reply(res, 500, "text/plain", "DB prepare failed");
         return;
     }
 
@@ -123,11 +123,11 @@ void handle_login(Req *req, Res *res)
         printf("Session ID: %s\n", sid);
         printf("Session JSON: %s\n", sess->data);
 
-        reply(res, "200 OK", "text/plain", "Login successful!");
+        reply(res, 200, "text/plain", "Login successful!");
     }
     else
     {
-        reply(res, "401 Unauthorized", "text/plain", "Invalid username or password");
+        reply(res, 401, "text/plain", "Invalid username or password");
     }
 
     sqlite3_finalize(stmt);
@@ -181,13 +181,13 @@ void handle_logout(Req *req, Res *res)
 
     if (!sess)
     {
-        reply(res, "400", "text/plain", "You have to login first");
+        reply(res, 400, "text/plain", "You have to login first");
     }
     else
     {
         free_session(sess);                   // Delete session from the memory
         set_cookie(res, "session_id", "", 0); // Time out cookie, the browser will delete it
-        reply(res, "302 Found", "text/plain", "Logged out");
+        reply(res, 302, "text/plain", "Logged out");
     }
 }
 ```
@@ -275,7 +275,7 @@ void handle_session_data(Req *req, Res *res)
     if (!user_session)
     {
         reply(res,
-              "401 Unauthorized",
+              401,
               "application/json",
               "{\"error\":\"Authentication required\"}");
         return;
@@ -288,7 +288,7 @@ void handle_session_data(Req *req, Res *res)
     {
         /* If parsing fails, return an error */
         reply(res,
-              "500 Internal Server Error",
+              500,
               "application/json",
               "{\"error\":\"Failed to parse session data\"}");
         return;
@@ -300,14 +300,14 @@ void handle_session_data(Req *req, Res *res)
     {
         json_decref(session_data);
         reply(res,
-              "500 Internal Server Error",
+              500,
               "application/json",
               "{\"error\":\"Failed to serialize session data\"}");
         return;
     }
 
     /* Send the session JSON back to the client */
-    reply(res, "200 OK", "application/json", session_str);
+    reply(res, 200, "application/json", session_str);
 
     /* Clean up */
     free(session_str);
@@ -362,7 +362,7 @@ void handle_session_data(Req *req, Res *res)
     if (!user_session)
     {
         reply(res,
-              "401 Unauthorized",
+              401,
               "application/json",
               "{\"error\":\"Authentication required\"}");
         return;
@@ -374,7 +374,7 @@ void handle_session_data(Req *req, Res *res)
     if (!session_data)
     {
         reply(res,
-              "500 Internal Server Error",
+              500,
               "application/json",
               "{\"error\":\"Invalid session data\"}");
         return;
@@ -401,14 +401,14 @@ void handle_session_data(Req *req, Res *res)
         json_decref(session_data);
         json_decref(response);
         reply(res,
-              "500 Internal Server Error",
+              500,
               "application/json",
               "{\"error\":\"Failed to serialize response\"}");
         return;
     }
 
     /* Send it */
-    reply(res, "200 OK", "application/json", json_str);
+    reply(res, 200, "application/json", json_str);
 
     /* Cleanup */
     free(json_str);
@@ -446,12 +446,12 @@ void handle_protected(Req *req, Res *res)
      // If the user hasn't, return an error with 401 status code
     if (!sess)
     {
-        reply(res, "401 Unauthorized", "text/plain", "You must be logged in.");
+        reply(res, 401, "text/plain", "You must be logged in.");
         return;
     }
 
     // If has, let the user in
-    reply(res, "200 OK", "text/plain", "Welcome to the protected area!");
+    reply(res, 200, "text/plain", "Welcome to the protected area!");
 }
 ```
 
@@ -506,7 +506,7 @@ void edit_profile(Req *req, Res *res)
     if (!sess)
     {
         reply(res,
-              "401 Unauthorized",
+              401,
               "text/plain",
               "Authentication required");
         return;
@@ -518,7 +518,7 @@ void edit_profile(Req *req, Res *res)
     if (!session_data)
     {
         reply(res,
-              "500 Internal Server Error",
+              500,
               "text/plain",
               "Invalid session data");
         return;
@@ -530,7 +530,7 @@ void edit_profile(Req *req, Res *res)
     {
         json_decref(session_data);
         reply(res,
-              "500 Internal Server Error",
+              500,
               "text/plain",
               "Session missing username");
         return;
@@ -560,7 +560,7 @@ void edit_profile(Req *req, Res *res)
         snprintf(error_msg, sizeof(error_msg),
                  "{\"error\":\"DB error: %s\"}", errmsg);
         json_decref(session_data);
-        reply(res, "500 Internal Server Error", "application/json", error_msg);
+        reply(res, 500, "application/json", error_msg);
         return;
     }
     sqlite3_bind_text(stmt, 1, slug, -1, SQLITE_STATIC);
@@ -577,7 +577,7 @@ void edit_profile(Req *req, Res *res)
         json_object_set_new(user_json, "name", json_string(name));
 
         char *json_string = json_dumps(user_json, JSON_COMPACT);
-        reply(res, "200 OK", "application/json", json_string);
+        reply(res, 200, "application/json", json_string);
 
         free(json_string);
         json_decref(user_json);

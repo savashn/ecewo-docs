@@ -154,7 +154,7 @@ static void multiply_done(void *context, int success, char *error)
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        reply(c->res, "500 Internal Server Error", "text/plain", error);
+        reply(c->res, 500, "text/plain", error);
     }
     else
     {
@@ -163,7 +163,7 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            c->input, c->final);
 
-        reply(c->res, "200 OK", "text/plain", buf);
+        reply(c->res, 200, "text/plain", buf);
         free_async(c);  // The latest "_done" has to free the memory
     }
 }
@@ -244,7 +244,7 @@ static void multiply_done(void *context, int success, char *error)
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        reply(c->res, "500 Internal Server Error", "text/plain", error);
+        reply(c->res, 500, "text/plain", error);
     }
     else
     {
@@ -253,7 +253,7 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            c->input, c->final);
 
-        reply(c->res, "200 OK", "text/plain", buf);
+        reply(c->res, 200, "text/plain", buf);
         free_async(c); // The latest "_done" has to free the memory
     }
 }

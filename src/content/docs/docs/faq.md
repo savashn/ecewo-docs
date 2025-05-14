@@ -3,7 +3,7 @@ title: Frequently Asked Questions
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-## Is Ecewo Production Ready?
+## Is *Ecewo* Production Ready?
 
 No, maybe in version 1.0. However, it doesn’t need to be neither battle-tested nor production-ready, because I’m building it as a **hobby project** to improve my programming skills.
 
@@ -19,6 +19,6 @@ For the same reason as with other languages. You might prefer Rust for low-level
 
 We do not. I just want to do something exciting.
 
-## Where The Name Ecewo Comes From?
+## Where Does The Name *Ecewo* Comes From?
 
 I inspired by the name of my love.

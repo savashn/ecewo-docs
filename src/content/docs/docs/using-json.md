@@ -43,7 +43,7 @@ void hello_world(Req *req, Res *res)
     // Send the response with 200 status code
     // content-type must be "application/json" to send a json
 
-    reply(res, "200 OK", "application/json", json_string);
+    reply(res, 200, "application/json", json_string);
 
     // Free the memory that allocated by jansson
     json_decref(json);
@@ -102,7 +102,7 @@ void handle_user(Req *req, Res *res)
 
     if (body == NULL)
     {
-        reply(res, "400 Bad Request", "text/plain", "Missing request body");
+        reply(res, 400, "text/plain", "Missing request body");
         return;
     }
 
@@ -110,7 +110,7 @@ void handle_user(Req *req, Res *res)
     json_t *json = json_loads(body, 0, &error);
     if (!json)
     {
-        reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
+        reply(res, 400, "text/plain", "Invalid JSON");
         return;
     }
 
@@ -121,7 +121,7 @@ void handle_user(Req *req, Res *res)
     if (!json_is_string(name_obj) || !json_is_string(surname_obj) || !json_is_string(username_obj))
     {
         json_decref(json);
-        reply(res, "400 Bad Request", "text/plain", "Missing fields");
+        reply(res, 400, "text/plain", "Missing fields");
         return;
     }
 
@@ -134,7 +134,7 @@ void handle_user(Req *req, Res *res)
     printf("Username: %s\n", username);
 
     json_decref(json); // Free the JSON object
-    reply(res, "200", "text/plain", "Success!");
+    reply(res, 200, "text/plain", "Success!");
 }
 ```
 

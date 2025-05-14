@@ -21,7 +21,6 @@ export default defineConfig({
 					items: [
 						{ label: 'Introduction', slug: 'docs/introduction' },
 						{ label: 'Getting Started', slug: 'docs/getting-started' },
-						{ label: 'Route Handling', slug: 'docs/route-handling' },
 						{ label: 'Handling Requests', slug: 'docs/handling-requests' },
 						{ label: 'Using JSON', slug: 'docs/using-json' },
 						{ label: 'Using A Database', slug: 'docs/using-a-database' },
