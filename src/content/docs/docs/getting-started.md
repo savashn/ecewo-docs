@@ -25,6 +25,7 @@ Ecewo includes some scripts to make configuration easier. You can view them by r
 - `--update`    — Update Ecewo
 - `--create`    — Create a starter project
 - `--migrate`   — Migrate the CMakeLists.txt file
+- `--install`   — Install packages
 
 Let's create an example `hello world` app by running the following command:
 
@@ -89,7 +90,7 @@ int main()
   init_router();
   get("/", hello_world);
   ecewo(4000);
-  free_router();
+  final_router();
   return 0;
 }
 ```
@@ -116,27 +117,4 @@ Server is running at: http://localhost:4000
 
 Now if we go to `http://localhost:4000/` we'll see a basic `hello world!` text message.
 
-**NOTE:** When we create a new `.c` file, we need to run `./build.sh --migrate` command before running `./build.sh --run`. It will automatically configure `CMakeLists.txt` file for us.
-
-**<--- IMPORTANT --->**
-
-If you have the following issue while compiling:
-
-```
-CMake Error at build/_deps/jansson-src/CMakeLists.txt:1 (cmake_minimum_required):
-Compatibility with CMake < 3.5 has been removed from CMake.
-```
-
-Go to `build/_deps/jansson-src/` and modify the CMakeLists.txt as follows:
-
-```
-// Change this:
-cmake_minimum_required (VERSION 3.1)
-project(jansson C)
-
-// To this:
-cmake_minimum_required (VERSION 3.10)
-project(jansson C)
-```
-
-And run the build command again.
+**NOTE:** When we create a new `.c` file, we need to run `./build.sh --migrate` command before running `./build.sh --run` (for PowerShell, must be `./build.bat /migrate` and `./build.bat /run`). It will automatically configure `CMakeLists.txt` file for us.

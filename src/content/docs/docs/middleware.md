@@ -99,7 +99,7 @@ int main()
 
     ecewo(4000);  // Start the server on port 4000
     free_mw();    // Free allocated middleware memory
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -153,7 +153,7 @@ int main()
     ecewo(3000);
 
     free_mw();
-    free_router();
+    final_router();
     return 0;
 }
 ```

@@ -3,8 +3,23 @@ title: Using JSON
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-Ecewo supports a powerful built-in JSON library called [Jansson](https://github.com/akheron/jansson).
-It’s easy to use and allows us to work with JSON objects effortlessly. For more information, refer to the official [Jansson Documentation](https://jansson.readthedocs.io/en/latest/index.html).
+Ecewo supports a powerful JSON library called [cJSON](https://github.com/akheron/jansson). It’s easy to use and allows us to work with JSON objects effortlessly. For more information, refer to its official documentation.
+
+We can install it easily by running the following command:
+
+```
+./build.sh --install --cjson
+./build.sh --migrate
+```
+
+If you prefer to use PowerShell:
+
+```
+./build.bat /install --cjson
+./build.bat /migrate
+```
+
+This command will generate a `vendors/` folder under `src/`, you can access `cJSON` from there.
 
 ## Creating JSON
 
@@ -26,19 +41,19 @@ void hello_world(Req *req, Res *res);
 ```sh
 // src/handlers.c
 
-#include "handlers.h"   // To handle the request and send a response
-#include "jansson.h"    // To deal with JSON
+#include "handlers.h"       // To handle the request and send a response
+#include "vendors/cJSON.h"  // To deal with JSON
 
 void hello_world(Req *req, Res *res)
 {
     // Create a JSON object
-    json_t *json = json_object();
+    cJSON *json = cJSON_CreateObject();
 
     // Add string to the JSON object we just created
-    json_object_set_new(json, "hello", json_string("world"));
+     cJSON_AddStringToObject(json, "hello", "world");
 
     // Convert the JSON object to a string
-    char *json_string = json_dumps(json, JSON_COMPACT);
+    char *json_string = cJSON_PrintUnformatted(json);
 
     // Send the response with 200 status code
     // content-type must be "application/json" to send a json
@@ -46,7 +61,7 @@ void hello_world(Req *req, Res *res)
     reply(res, 200, "application/json", json_string);
 
     // Free the memory that allocated by jansson
-    json_decref(json);
+    cJSON_Delete(json);
     free(json_string);
 }
 ```
@@ -62,7 +77,7 @@ int main()
     init_router();
     get("/", hello_world);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -94,7 +109,7 @@ void handle_user(Req *req, Res *res);
 // src/handlers.c
 
 #include "handlers.h"
-#include "jansson.h"
+#include "vendors/cJSON.h"
 
 void handle_user(Req *req, Res *res)
 {
@@ -106,34 +121,30 @@ void handle_user(Req *req, Res *res)
         return;
     }
 
-    json_error_t error;
-    json_t *json = json_loads(body, 0, &error);
+    cJSON *json = cJSON_Parse(body);
+
     if (!json)
     {
-        reply(res, 400, "text/plain", "Invalid JSON");
+        reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
         return;
     }
 
-    json_t *name_obj = json_object_get(json, "name");
-    json_t *surname_obj = json_object_get(json, "surname");
-    json_t *username_obj = json_object_get(json, "username");
+    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
+    const char *surname = cJSON_GetObjectItem(json, "surname")->valuestring;
+    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
 
-    if (!json_is_string(name_obj) || !json_is_string(surname_obj) || !json_is_string(username_obj))
+    if (!name || !surname || !username)
     {
-        json_decref(json);
+        cJSON_Delete(json);
         reply(res, 400, "text/plain", "Missing fields");
         return;
     }
-
-    const char *name = json_string_value(name_obj);
-    const char *surname = json_string_value(surname_obj);
-    const char *username = json_string_value(username_obj);
 
     printf("Name: %s\n", name);
     printf("Surname: %s\n", surname);
     printf("Username: %s\n", username);
 
-    json_decref(json); // Free the JSON object
+    cJSON_Delete(json);
     reply(res, 200, "text/plain", "Success!");
 }
 ```
@@ -149,7 +160,7 @@ int main()
     init_router();
     post("/user", handle_user);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```

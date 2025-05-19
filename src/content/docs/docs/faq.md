@@ -19,6 +19,6 @@ For the same reason as with other languages. You might prefer Rust for low-level
 
 We do not. I just want to do something exciting.
 
-## Where Does The Name *Ecewo* Comes From?
+## Where Does The Name *Ecewo* Come From?
 
 I inspired by the name of my love.

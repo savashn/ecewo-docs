@@ -45,7 +45,7 @@ int main()
     init_router();
     post("/print-body", print_body);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -119,7 +119,7 @@ int main()
     init_router();
     get("/send-params/:slug", send_params);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -139,7 +139,7 @@ int main()
     init_router();
     get("/print-more-params/:key/and/:value");
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -200,7 +200,7 @@ int main()
     init_router();
     get("/print-query", print_query);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -311,7 +311,7 @@ int main()
     init_router();
     get("/header", get_user_agent);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```

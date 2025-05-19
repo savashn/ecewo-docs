@@ -365,7 +365,7 @@ int main()
     init_router();
     get("/calculate/:num", calculate);
     ecewo(4000);
-    free_router();
+    final_router();
     return 0;
 }
 ```

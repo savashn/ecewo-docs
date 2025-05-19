@@ -7,9 +7,19 @@ We need a database if we are building a backend service. This documentation show
 
 ## Install SQLite
 
-Go to the official [SQLite](https://sqlite.org/download.html) page and download the `C source code as an amalgamation`, which is a zip file. We need only 2 files in it: `sqlite3.c` and `sqlite3.h`.
+Run the following commands:
 
-Unzip it, take the `sqlite3.c` and `sqlite3.h` files, and put them to anywhere you want in your `src` directory.
+```
+./build.sh --install --sqlite
+./build.sh --migrate
+```
+
+If you use PowerShell:
+
+```
+./build.bat /install --sqlite
+./build.bat /migrate
+```
 
 ## Example Folder Structure
 
@@ -21,7 +31,9 @@ your-project/
     ├── handlers/           # Folder for our handlers
     │   ├── handlers.c      # Our handlers
     │   └── handlers.h      # Header file of handlers
-    ├── lib/                # Folder for external libraries
+    ├── vendors/            # Folder for external libraries
+    │   ├── cJSON.c         # cJSON source code (we installed it in the previous chapter)
+    │   ├── cJSON.h         # cJSON header file (we installed it in the previous chapter)
     │   ├── sqlite3.c       # SQLite3 source code we downloaded
     │   └── sqlite3.h       # SQLite3 header file we downloaded
     ├── db/                 # Folder for our database migrations
@@ -30,29 +42,13 @@ your-project/
     └── CMakeLists.txt      # Our compiling configs
 ```
 
-## Update CMake
-
-Add `.c` files to `CMakeLists.txt` to compile:
-
-```
-// src/CMakeLists.txt
-
-set(APP_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/handlers/handlers.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sqlite3.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/db/db.c
-    PARENT_SCOPE
-)
-```
-
 ## Connecting To Database
 
 ```sh
 // src/db/db.c
 
 #include <stdio.h>
-#include "src/lib/sqlite3.h"
+#include "../vendors/sqlite3.h"
 
 sqlite3 *db = NULL;
 
@@ -107,7 +103,7 @@ int init_db()
 #ifndef DB_H
 #define DB_H
 
-#include "src/lib/sqlite3.h"
+#include "../vendors/sqlite3.h"
 
 extern sqlite3 *db;
 
@@ -156,8 +152,8 @@ void add_user(Req *req, Res *res);
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "jansson.h"
-#include "../lib/sqlite3.h"
+#include "../vendors/cJSON.h"
+#include "../vendors/sqlite3.h"
 
 extern sqlite3 *db; // THIS IS IMPORTANT TO USE THE DATABASE
 
@@ -174,8 +170,7 @@ void add_user(Req *req, Res *res)
     }
 
     // Parse the body as JSON
-    json_error_t error;
-    json_t *json = json_loads(body, 0, &error);
+    cJSON *json = cJSON_Parse(body);
 
     // If JSON parsing fails, return a 400 Bad Request response
     if (!json)
@@ -185,22 +180,18 @@ void add_user(Req *req, Res *res)
     }
 
     // Extract the 'name', 'surname', and 'username' fields from the JSON object
-    json_t *name_json = json_object_get(json, "name");
-    json_t *username_json = json_object_get(json, "username");
-    json_t *password_json = json_object_get(json, "password");
+    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
+    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
+    const char *password = cJSON_GetObjectItem(json, "password")->valuestring;
 
-    // If any of the required fields are missing or not strings, clean up and return a 400 error
-    if (!name_json || !username_json || !password_json ||
-        !json_is_string(name_json) || !json_is_string(username_json) || !json_is_string(password_json))
+    // If any of the required fields are missing, delete the JSON object and return a 400 error
+    if (!name || !username || !password)
+
     {
-        json_decref(json);
-        reply(res, 400, "text/plain", "Missing or invalid fields");
+        cJSON_Delete(json);
+        reply(res, 400, "text/plain", "Missing fields");
         return;
     }
-
-    const char *name = json_string_value(name_json);
-    const char *username = json_string_value(username_json);
-    const char *password = json_string_value(password_json);
 
     // SQL query to insert a new user into the database
     const char *sql = "INSERT INTO users (name, username, password) VALUES (?, ?, ?);";
@@ -210,7 +201,7 @@ void add_user(Req *req, Res *res)
     // If the SQL preparation fails, return a 500 Internal Server Error
     if (rc != SQLITE_OK)
     {
-        json_decref(json);
+        cJSON_Delete(json);
         reply(res, 500, "text/plain", "DB prepare failed");
         return;
     }
@@ -223,7 +214,7 @@ void add_user(Req *req, Res *res)
     // Execute the SQL statement to insert the user
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
-    json_decref(json);
+    cJSON_Delete(json);
 
     // If the insert operation fails, return a 500 error
     if (rc != SQLITE_DONE)
@@ -251,7 +242,7 @@ int main()
     post("/user", add_user);
     ecewo(4000);
     sqlite3_close(db);
-    free_router();
+    final_router();
     return 0;
 }
 ```
@@ -304,8 +295,8 @@ void get_all_users(Req *req, Res *res);
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "jansson.h"
-#include "../lib/sqlite3.h"
+#include "../vendors/cJSON.h"
+#include "../vendors/sqlite3.h"
 
 void get_all_users(Req *req, Res *res)
 {
@@ -320,7 +311,7 @@ void get_all_users(Req *req, Res *res)
         return;
     }
 
-    json_t *arr = json_array();
+    cJSON *json_array = cJSON_CreateArray();
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
     {
@@ -328,28 +319,28 @@ void get_all_users(Req *req, Res *res)
         const char *name = sqlite3_column_text(stmt, 1);                   // 1 is the index of the 'name' column
         const char *username = (const char *)sqlite3_column_text(stmt, 2); // 2 is the index of the 'username' column
 
-        json_t *user_json = json_object();
-        json_object_set_new(user_json, "id", json_integer(id));
-        json_object_set_new(user_json, "name", json_string(name));
-        json_object_set_new(user_json, "username", json_string(username));
+        cJSON *user_json = cJSON_CreateObject();
+        cJSON_AddNumberToObject(user_json, "id", id);
+        cJSON_AddStringToObject(user_json, "name", name);
+        cJSON_AddStringToObject(user_json, "username", username);
 
-        json_array_append_new(arr, user_json);
+        cJSON_AddItemToArray(json_array, user_json);
     }
 
     if (rc != SQLITE_DONE)
     {
         reply(res, 500, "text/plain", "DB step failed");
         sqlite3_finalize(stmt);
-        json_decref(arr);
+        cJSON_Delete(json_array);
         return;
     }
 
-    char *json_string = json_dumps(arr, JSON_COMPACT);
+    char *json_string = cJSON_PrintUnformatted(json_array);
 
     reply(res, 200, "application/json", json_string); // Send the response
 
     // Free the allocated memory when we are done:
-    json_decref(arr);
+    cJSON_Delete(json_array);
     free(json_string);
     sqlite3_finalize(stmt);
 }
@@ -394,7 +385,7 @@ int main()
     get("/users", get_all_users);
     ecewo(4000);
     sqlite3_close(db);
-    free_router();
+    final_router();
     return 0;
 }
 ```

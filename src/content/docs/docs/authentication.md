@@ -15,6 +15,21 @@ With the power of these APIs, we can easily manage the authentication and author
 
 Let's make an authentication example and see how it works.
 
+## Installation
+
+Run these commands in the terminal:
+
+```
+./build.sh --install --session
+./build.sh --migrate
+```
+
+For PowerShell:
+```
+./build.bat /install --session
+./build.bat /migrate
+```
+
 ## Login
 
 We have two test users:
@@ -25,13 +40,13 @@ We have two test users:
             "id": 1,
             "name": "John",
             "username": "johndoe"
-            "password": "123123123"
+            "password": "123123"
         },
         {
             "id": 2,
             "name": "Jane",
             "username": "janedoe"
-            "password": "123123123"
+            "password": "321321"
         }
     ]
 ```
@@ -55,8 +70,8 @@ void handle_login(Req *req, Res *res);
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "jansson.h"
-#include "session.h"
+#include "../vendors/cJSON.h"
+#include "../vendors/session.h"
 #include "../db/db.h"
 
 extern sqlite3 *db;
@@ -71,34 +86,29 @@ void handle_login(Req *req, Res *res)
         return;
     }
 
-    json_error_t err;
-    json_t *json = json_loads(body, 0, &err);
+    cJSON *json = cJSON_Parse(body);
     if (!json)
     {
         reply(res, 400, "text/plain", "Invalid JSON");
         return;
     }
 
-    // username ve password alanlarını al
-    json_t *j_username = json_object_get(json, "username");
-    json_t *j_password = json_object_get(json, "password");
+    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
+    const char *password = cJSON_GetObjectItem(json, "password")->valuestring;
 
-    if (!json_is_string(j_username) || !json_is_string(j_password))
+    if (!username || !password)
     {
-        json_decref(json);
-        reply(res, 400, "text/plain", "Missing or invalid fields");
+        cJSON_Delete(json);
+        reply(res, 400, "text/plain", "Missing fields");
         return;
     }
-
-    const char *username = json_string_value(j_username);
-    const char *password = json_string_value(j_password);
 
     const char *sql = "SELECT * FROM users WHERE username = ? AND password = ?";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     if (rc != SQLITE_OK)
     {
-        json_decref(json);
+        cJSON_Delete(json);
         reply(res, 500, "text/plain", "DB prepare failed");
         return;
     }
@@ -111,14 +121,14 @@ void handle_login(Req *req, Res *res)
     {
         const char *db_name = (const char *)sqlite3_column_text(stmt, 1);
 
-        char *sid = create_session();
+        char *sid = create_session(3600); // 1 hour
         Session *sess = find_session(sid);
 
         set_session(sess, "name", db_name);
         set_session(sess, "username", username);
         set_session(sess, "theme", "dark");
 
-        set_cookie(res, "session_id", sid, 3600);
+        set_cookie(res, "session_id", sid, 3600); // 1 hour
 
         printf("Session ID: %s\n", sid);
         printf("Session JSON: %s\n", sess->data);
@@ -131,7 +141,7 @@ void handle_login(Req *req, Res *res)
     }
 
     sqlite3_finalize(stmt);
-    json_decref(json);
+    cJSON_Delete(json);
 }
 ```
 
@@ -141,15 +151,22 @@ void handle_login(Req *req, Res *res)
 #include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
+#include "vendors/session.h"
 
 int main()
 {
     init_router();
     init_db();
+    init_sessions();
+
     post("/login", handle_login);
+
     ecewo(4000);
+
+    final_sessions();
     sqlite3_close(db);
-    free_router();
+    final_router();
+
     return 0;
 }
 ```
@@ -216,16 +233,23 @@ And also add to entry point:
 #include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
+#include "vendors/session.h"
 
 int main()
 {
     init_router();
     init_db();
+    init_sessions();
+
     post("/login", handle_login);
     get("/logout", handle_logout); // We added it now
+
     ecewo(4000);
+
+    final_sessions();
     sqlite3_close(db);
-    free_router();
+    final_router();
+
     return 0;
 }
 ```
@@ -265,8 +289,8 @@ void handle_session_data(Req *req, Res *res); // We added now
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "jansson.h"
-#include "session.h"
+#include "../vendors/cJSON.h"
+#include "../vendors/session.h"
 
 void handle_session_data(Req *req, Res *res)
 {
@@ -276,33 +300,32 @@ void handle_session_data(Req *req, Res *res)
     {
         reply(res,
               401,
-              "application/json",
-              "{\"error\":\"Authentication required\"}");
+              "text/plain",
+              "Error: Authentication required");
         return;
     }
 
     /* Parse the JSON string stored in session->data */
-    json_error_t err;
-    json_t *session_data = json_loads(user_session->data, 0, &err);
+    cJSON *session_data = cJSON_Parse(user_session->data);
     if (!session_data)
     {
         /* If parsing fails, return an error */
         reply(res,
               500,
-              "application/json",
-              "{\"error\":\"Failed to parse session data\"}");
+              "text/plain",
+              "Error: Failed to parse session data");
         return;
     }
 
     /* Serialize back to a compact JSON string */
-    char *session_str = json_dumps(session_data, JSON_COMPACT);
+    char *session_str = cJSON_PrintUnformatted(session_data);
     if (!session_str)
     {
-        json_decref(session_data);
+        cJSON_Delete(session_data);
         reply(res,
               500,
-              "application/json",
-              "{\"error\":\"Failed to serialize session data\"}");
+              "text/plain",
+              "Error: Failed to serialize session data");
         return;
     }
 
@@ -311,7 +334,7 @@ void handle_session_data(Req *req, Res *res)
 
     /* Clean up */
     free(session_str);
-    json_decref(session_data);
+    cJSON_Delete(session_data);
 }
 ```
 
@@ -321,17 +344,24 @@ void handle_session_data(Req *req, Res *res)
 #include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
+#include "vendors/session.h"
 
 int main()
 {
     init_router();
     init_db();
+    init_sessions();
+
     get("/session", handle_session_data); // We added it now
     post("/login", handle_login);
     post("/logout", handle_logout);
+
     ecewo(4000);
+
+    final_sessions();
     sqlite3_close(db);
-    free_router();
+    final_router();
+    
     return 0;
 }
 ```
@@ -363,57 +393,54 @@ void handle_session_data(Req *req, Res *res)
     {
         reply(res,
               401,
-              "application/json",
-              "{\"error\":\"Authentication required\"}");
+              "text/plain",
+              "Error: Authentication required");
         return;
     }
 
-    /* Parse stored session JSON */
-    json_error_t err;
-    json_t *session_data = json_loads(user_session->data, 0, &err);
+    /* Parse the JSON string stored in session->data */
+    cJSON *session_data = cJSON_Parse(user_session->data);
     if (!session_data)
     {
+        /* If parsing fails, return an error */
         reply(res,
               500,
-              "application/json",
-              "{\"error\":\"Invalid session data\"}");
+              "text/plain",
+              "Error: Failed to parse session data");
         return;
     }
 
-    /* Extract \"name\" field */
-    json_t *j_name = json_object_get(session_data, "name");
+    cJSON *name = cJSON_GetObjectItem(session_data, "name");
 
-    /* Build response object */
-    json_t *response = json_object();
-    if (json_is_string(j_name))
+    cJSON *response = cJSON_CreateObject();
+
+    if (name && name->valuestring)
     {
-        json_object_set_new(response, "name", json_string(json_string_value(j_name)));
+        cJSON_AddStringToObject(response, "name", name->valuestring);
     }
     else
     {
-        json_object_set_new(response, "name", json_string("Unknown"));
+        cJSON_AddStringToObject(response, "name", "Unknown");
     }
 
-    /* Serialize response */
-    char *json_str = json_dumps(response, JSON_COMPACT);
+    char *json_str = cJSON_PrintUnformatted(response);
     if (!json_str)
     {
-        json_decref(session_data);
-        json_decref(response);
+        cJSON_Delete(session_data);
         reply(res,
               500,
-              "application/json",
-              "{\"error\":\"Failed to serialize response\"}");
+              "text/plain",
+              "Error: Failed to serialize session data");
         return;
     }
 
-    /* Send it */
+    /* Send the session JSON back to the client */
     reply(res, 200, "application/json", json_str);
 
-    /* Cleanup */
+    /* Clean up */
     free(json_str);
-    json_decref(session_data);
-    json_decref(response);
+    cJSON_Delete(session_data);
+    cJSON_Delete(response);
 }
 ```
 
@@ -513,8 +540,7 @@ void edit_profile(Req *req, Res *res)
     }
 
     // Parse session data as JSON with Jansson
-    json_error_t err;
-    json_t *session_data = json_loads(sess->data, 0, &err);
+    cJSON *session_data = cJSON_Parse(sess->data);
     if (!session_data)
     {
         reply(res,
@@ -525,25 +551,15 @@ void edit_profile(Req *req, Res *res)
     }
 
     /* Extract \"username\" field from session */
-    json_t *j_username = json_object_get(session_data, "username");
-    if (!json_is_string(j_username))
-    {
-        json_decref(session_data);
-        reply(res,
-              500,
-              "text/plain",
-              "Session missing username");
-        return;
-    }
-    const char *session_username = json_string_value(j_username);
+    cJSON *username = cJSON_GetObjectItem(session_data, "username"); // Get the "username" data from session
 
     /* Compare slug param vs session username */
     const char *slug = get_req(&req->params, "slug");
-    if (!slug || strcmp(slug, session_username) != 0)
+    if (!slug || strcmp(slug, username->valuestring) != 0)
     {
-        json_decref(session_data);
+        cJSON_Delete(session_data);
         reply(res,
-              "403 Forbidden",
+              403,
               "text/plain",
               "Unauthorized: Slug does not match session username");
         return;
@@ -559,7 +575,7 @@ void edit_profile(Req *req, Res *res)
         char error_msg[256];
         snprintf(error_msg, sizeof(error_msg),
                  "{\"error\":\"DB error: %s\"}", errmsg);
-        json_decref(session_data);
+        cJSON_Delete(session_data);
         reply(res, 500, "application/json", error_msg);
         return;
     }
@@ -572,28 +588,27 @@ void edit_profile(Req *req, Res *res)
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
 
         /* Build JSON response with Jansson */
-        json_t *user_json = json_object();
-        json_object_set_new(user_json, "id", json_integer(id));
-        json_object_set_new(user_json, "name", json_string(name));
+        cJSON *user_json = cJSON_CreateObject();
+        cJSON_AddNumberToObject(user_json, "id", id);
+        cJSON_AddStringToObject(user_json, "name", name);
 
-        char *json_string = json_dumps(user_json, JSON_COMPACT);
+        char *json_string = cJSON_PrintUnformatted(user_json);
         reply(res, 200, "application/json", json_string);
 
-        free(json_string);
-        json_decref(user_json);
+        cJSON_Delete(user_json); // free cJSON memory
+        free(json_string);       // free json_string memory
     }
     else
     {
         reply(res,
-              "404 Not Found",
+              404,
               "text/plain",
               "User not found");
     }
 
     /* Cleanup */
     sqlite3_finalize(stmt);
-    json_decref(session_data);
-    free_req(&req->params);
+    cJSON_Delete(session_data);
 }
 ```
 
