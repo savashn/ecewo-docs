@@ -29,11 +29,6 @@ your-project/
     ├── handlers/           # Folder for our handlers
     │   ├── handlers.c      # Our handlers
     │   └── handlers.h      # Header file of handlers
-    ├── vendors/            # Folder for external libraries
-    │   ├── cJSON.c         # cJSON source code (we installed it in the previous chapter)
-    │   ├── cJSON.h         # cJSON header file (we installed it in the previous chapter)
-    │   ├── sqlite3.c       # SQLite3 source code we downloaded
-    │   └── sqlite3.h       # SQLite3 header file we downloaded
     ├── db/                 # Folder for our database migrations
     │   ├── db.h            # Our database header file
     │   └── db.c            # Our database configs
@@ -46,7 +41,7 @@ your-project/
 // src/db/db.c
 
 #include <stdio.h>
-#include "../vendors/sqlite3.h"
+#include "sqlite3.h"
 
 sqlite3 *db = NULL;
 
@@ -101,7 +96,7 @@ int init_db()
 #ifndef DB_H
 #define DB_H
 
-#include "../vendors/sqlite3.h"
+#include "sqlite3.h"
 
 extern sqlite3 *db;
 
@@ -150,8 +145,8 @@ void add_user(Req *req, Res *res);
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "../vendors/cJSON.h"
-#include "../vendors/sqlite3.h"
+#include "cJSON.h"
+#include "sqlite3.h"
 
 extern sqlite3 *db; // THIS IS IMPORTANT TO USE THE DATABASE
 
@@ -293,8 +288,8 @@ void get_all_users(Req *req, Res *res);
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "../vendors/cJSON.h"
-#include "../vendors/sqlite3.h"
+#include "cJSON.h"
+#include "sqlite3.h"
 
 void get_all_users(Req *req, Res *res)
 {

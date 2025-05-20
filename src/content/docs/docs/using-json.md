@@ -37,8 +37,8 @@ void hello_world(Req *req, Res *res);
 ```sh
 // src/handlers.c
 
-#include "handlers.h"       // To handle the request and send a response
-#include "vendors/cJSON.h"  // To deal with JSON
+#include "handlers.h"   // To handle the request and send a response
+#include "cJSON.h"      // To deal with JSON
 
 void hello_world(Req *req, Res *res)
 {
@@ -105,7 +105,7 @@ void handle_user(Req *req, Res *res);
 // src/handlers.c
 
 #include "handlers.h"
-#include "vendors/cJSON.h"
+#include "cJSON.h"
 
 void handle_user(Req *req, Res *res)
 {

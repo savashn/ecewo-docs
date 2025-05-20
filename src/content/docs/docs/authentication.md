@@ -68,8 +68,8 @@ void handle_login(Req *req, Res *res);
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "../vendors/cJSON.h"
-#include "../vendors/session.h"
+#include "cJSON.h"
+#include "session.h"
 #include "../db/db.h"
 
 extern sqlite3 *db;
@@ -149,7 +149,7 @@ void handle_login(Req *req, Res *res)
 #include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
-#include "vendors/session.h"
+#include "session.h"
 
 int main()
 {
@@ -231,7 +231,7 @@ And also add to entry point:
 #include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
-#include "vendors/session.h"
+#include "session.h"
 
 int main()
 {
@@ -287,8 +287,8 @@ void handle_session_data(Req *req, Res *res); // We added now
 // src/handlers/handlers.c
 
 #include "handlers.h"
-#include "../vendors/cJSON.h"
-#include "../vendors/session.h"
+#include "cJSON.h"
+#include "session.h"
 
 void handle_session_data(Req *req, Res *res)
 {
@@ -342,7 +342,7 @@ void handle_session_data(Req *req, Res *res)
 #include "server.h"
 #include "handlers/handlers.h"
 #include "db/db.h"
-#include "vendors/session.h"
+#include "session.h"
 
 int main()
 {
