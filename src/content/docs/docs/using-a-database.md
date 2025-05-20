@@ -7,18 +7,16 @@ We need a database if we are building a backend service. This documentation show
 
 ## Install SQLite
 
-Run the following commands:
+Run the following command:
 
 ```
 ./build.sh --install --sqlite
-./build.sh --migrate
 ```
 
 If you use PowerShell:
 
 ```
 ./build.bat /install --sqlite
-./build.bat /migrate
 ```
 
 ## Example Folder Structure

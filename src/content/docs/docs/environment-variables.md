@@ -5,7 +5,19 @@ description: Documentation of Ecewo — A modern microframework for web developm
 
 Ecewo has built-in `env` parser, which is [dotenv-c](https://github.com/Isty001/dotenv-c). Let's see how it works.
 
-First, create a `.env` file in the root directory of your project. Project structure should be like this:
+First, install `dotenv-c` by running the following command:
+
+```
+./build.sh --install --dotenv
+```
+
+If you use PowerShell:
+
+```
+./build.bat /install --dotenv
+```
+
+And create a `.env` file in the root directory of your project. Project structure should be like this:
 
 ```
 ├── ecewo/

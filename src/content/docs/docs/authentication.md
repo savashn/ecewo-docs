@@ -17,17 +17,15 @@ Let's make an authentication example and see how it works.
 
 ## Installation
 
-Run these commands in the terminal:
+Run this command in the terminal:
 
 ```
 ./build.sh --install --session
-./build.sh --migrate
 ```
 
 For PowerShell:
 ```
 ./build.bat /install --session
-./build.bat /migrate
 ```
 
 ## Login

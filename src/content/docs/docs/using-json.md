@@ -9,17 +9,13 @@ We can install it easily by running the following command:
 
 ```
 ./build.sh --install --cjson
-./build.sh --migrate
 ```
 
 If you prefer to use PowerShell:
 
 ```
 ./build.bat /install --cjson
-./build.bat /migrate
 ```
-
-This command will generate a `vendors/` folder under `src/`, you can access `cJSON` from there.
 
 ## Creating JSON
 
