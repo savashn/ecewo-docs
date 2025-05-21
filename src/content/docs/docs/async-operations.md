@@ -53,14 +53,28 @@ Let's go through an example to see how the process works.
 
 We are going to do a basic calculating example step by step to understand how async operations work. 
 
-The example will be a very basic calculator that receives a number from `req->params` and does an addition first, and then a multiplication. So we will write a chain that includes 2 async operations
+The example will be a very basic calculator that receives a number from `req->params` and does an addition first, and then a multiplication. So we will write a chain that includes 2 async operations.
+
+### Step 0: Install Async Plugin
+
+For Shell Script:
+
+```
+./build.sh --install --async
+```
+
+For PowerShell:
+
+```
+./build.bat /install --async
+```
 
 ### Step 1: Create A Context Structure
 
 ```sh
 // src/async_handler.c
 
-#include "ecewo.h" // For our handler, which is the entry point
+#include "ecewo.h"  // For our handler, which is the entry point
 #include "async.h"  // For asynchronous operations
 
 // Context for chained operations
@@ -95,9 +109,25 @@ void calculate(Req *req, Res *res)
 
     // Allocate memory for async
     ctx_t *ctx = malloc(sizeof(*ctx));
+    if (!ctx)
+    {
+        reply(res, 500, "text/plain", "Memory allocation failed");
+        return;
+    }
 
-    ctx->req = req;
-    ctx->res = res;
+    // Copy Req and Res to heap
+    ctx->req = malloc(sizeof(*ctx->req));
+    ctx->res = malloc(sizeof(*ctx->res));
+
+    if (!ctx->req || !ctx->res)
+    {
+        reply(res, 500, "text/plain", "Memory allocation failed");
+        free(ctx->req);
+        free(ctx->res);
+        free(ctx);
+        return;
+    }
+
     ctx->input = num;
     ctx->intermediate = 0;
     ctx->final = 0;
@@ -117,9 +147,19 @@ The `async(ctx, add)` takes two parameters: First one is the context, second one
 // _done function of the first operation:
 static void add_done(void *context, int success, char *error)
 {
-    await(context, multiply);
-    // if success, "await" calls the next task named "multiply";
-    // otherwise, returns an error
+    if (success)
+    {
+        await(context, multiply);
+        // if success, "await" calls the next task named "multiply"
+    }
+    else
+    {
+        // Otherwise, returns an error and free the memory
+
+        ctx_t *c = context;
+        reply(c->res, 500, "text/plain", error);
+        free_async(c);
+    }
 }
 
 // _work function of the first operation:
@@ -164,8 +204,9 @@ static void multiply_done(void *context, int success, char *error)
                            c->input, c->final);
 
         reply(c->res, 200, "text/plain", buf);
-        free_async(c);  // The latest "_done" has to free the memory
     }
+
+    free_async(c);  // Free the memory that allocated by async
 }
 
 // _work function of the second operation:
@@ -193,11 +234,7 @@ static void multiply_work(async_t *task, void *context)
 
 ### Step 5: Write The `free_async()` Function
 
-We have a `free_async()` function for memory safety. This function is automatically called if an error occurs at any point in the asynchronous chain, and it is responsible for freeing the allocated memory.
-
-However, `free_async()` is **only** used when the chain fails. If the chain completes successfully and no errors occur, this function will not run automatically.
-
-Therefore, we need to manually call this function at the exit point of the chain, which is the final `_done` function. In our example, that would be `multiply_done()`.
+We have a `free_async()` function for memory safety and it is responsible for freeing the allocated memory. This function is called if an error occurs at any point in the asynchronous chain or when our async operations are done.
 
 The `free_async()` function must be placed directly below the struct definition, as it is intended to be the very last function to run. If we have dynamically allocated memory in the chain, we can free it there. Even if we don't, we must still free the memory used by the `context`.
 
@@ -207,7 +244,10 @@ In our example, we need to free only the `context` memory:
 // Cleanup context
 static void free_async(void *ctx)
 {
-    free(ctx);
+    ctx_t *c = ctx;
+    free(c->req);
+    free(c->res);
+    free(c);
 }
 ```
 
@@ -216,8 +256,8 @@ static void free_async(void *ctx)
 In the end, the `async_handler.c` file should look like this:
 
 ```sh
-#include "async.h"
-#include "ecewo.h"
+#include "ecewo.h"  // For our handler, which is the entry point
+#include "async.h"  // For asynchronous operations
 
 // Context for chained operations
 typedef struct
@@ -232,7 +272,10 @@ typedef struct
 // Cleanup context
 static void free_async(void *ctx)
 {
-    free(ctx);
+    ctx_t *c = ctx;
+    free(c->req);
+    free(c->res);
+    free(c);
 }
 
 // _done function of the second operation:
@@ -254,8 +297,9 @@ static void multiply_done(void *context, int success, char *error)
                            c->input, c->final);
 
         reply(c->res, 200, "text/plain", buf);
-        free_async(c); // The latest "_done" has to free the memory
     }
+
+    free_async(c);  // Free the memory that allocated by async
 }
 
 // _work function of the second operation:
@@ -283,9 +327,19 @@ static void multiply_work(async_t *task, void *context)
 // _done function of the first operation:
 static void add_done(void *context, int success, char *error)
 {
-    await(context, multiply);
-    // if success, "await" calls the next task named "multiply";
-    // otherwise, returns an error
+    if (success)
+    {
+        await(context, multiply);
+        // If success, "await" calls the next task named "multiply"
+    }
+    else
+    {
+        // Otherwise, returns an error and free the memory
+
+        ctx_t *c = context;
+        reply(c->res, 500, "text/plain", error);
+        free_async(c);
+    }
 }
 
 // _work function of the first operation:
@@ -312,9 +366,25 @@ void calculate(Req *req, Res *res)
 
     // Allocate memory for async
     ctx_t *ctx = malloc(sizeof(*ctx));
+    if (!ctx)
+    {
+        reply(res, 500, "text/plain", "Memory allocation failed");
+        return;
+    }
 
-    ctx->req = req;
-    ctx->res = res;
+    // Copy Req and Res to heap
+    ctx->req = malloc(sizeof(*ctx->req));
+    ctx->res = malloc(sizeof(*ctx->res));
+
+    if (!ctx->req || !ctx->res)
+    {
+        reply(res, 500, "text/plain", "Memory allocation failed");
+        free(ctx->req);
+        free(ctx->res);
+        free(ctx);
+        return;
+    }
+
     ctx->input = num;
     ctx->intermediate = 0;
     ctx->final = 0;
@@ -327,19 +397,6 @@ void calculate(Req *req, Res *res)
 ### Test
 
 Let's run and test our async chain.
-
-```
-// src/CMakeLists.txt
-
-cmake_minimum_required(VERSION 3.10)
-project(my-project VERSION 0.1.0 LANGUAGES C)
-
-set(APP_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/async_handler.c
-    PARENT_SCOPE
-)
-```
 
 ```sh
 // src/handlers.h
@@ -370,7 +427,21 @@ int main()
 }
 ```
 
-Now let's build and go to `http://localhost:4000/calculate/100`. We will receive that response:
+Now let's build by running these commands:
+
+```
+./build.sh --migrate
+./build.sh --run
+```
+
+For PowerShell:
+
+```
+./build.bat /migrate
+./build.bat /run
+```
+
+And go to `http://localhost:4000/calculate/100`. We will receive that response:
 
 ```
 ((100) + 10) * 5 = 550
