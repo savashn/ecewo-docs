@@ -60,13 +60,13 @@ The example will be a very basic calculator that receives a number from `req->pa
 For Shell Script:
 
 ```
-./build.sh --install --async
+./ecewo.sh --install --async
 ```
 
 For PowerShell:
 
 ```
-./build.bat /install --async
+./ecewo.bat /install --async
 ```
 
 ### Step 1: Create A Context Structure
@@ -430,15 +430,15 @@ int main()
 Now let's build by running these commands:
 
 ```
-./build.sh --migrate
-./build.sh --run
+./ecewo.sh --migrate
+./ecewo.sh --run
 ```
 
 For PowerShell:
 
 ```
-./build.bat /migrate
-./build.bat /run
+./ecewo.bat /migrate
+./ecewo.bat /run
 ```
 
 And go to `http://localhost:4000/calculate/100`. We will receive that response:

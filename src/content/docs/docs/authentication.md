@@ -20,12 +20,12 @@ Let's make an authentication example and see how it works.
 Run this command in the terminal:
 
 ```
-./build.sh --install --session
+./ecewo.sh --install --session
 ```
 
 For PowerShell:
 ```
-./build.bat /install --session
+./ecewo.bat /install --session
 ```
 
 ## Login
@@ -639,14 +639,14 @@ When we logged in as johndoe and send a request again, here is what we will get:
 
 ## Notes
 
-** **NOTE 1** **
+> **NOTE 1**
+>
+>It's not safe to insert the password to the database without encryption. You should use a library to encrypt the user password before inserting.
 
-It's not safe to insert the password to the database without encryption. You should use a library to encrypt the user password before inserting.
-
-** **NOTE 2** **
-
-In these examples, session is stored in memory, but you can store them in the database if you prefer.
-
-If you store them in the memory, you will use `free_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
-
-But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.
+> **NOTE 2**
+>
+>In these examples, session is stored in memory, but you can store them in the database if you prefer.
+>
+>If you store them in the memory, you will use `free_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
+>
+>But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.

@@ -8,13 +8,13 @@ Ecewo has built-in `env` parser, which is [dotenv-c](https://github.com/Isty001/
 First, install `dotenv-c` by running the following command:
 
 ```
-./build.sh --install --dotenv
+./ecewo.sh --install --dotenv
 ```
 
 If you use PowerShell:
 
 ```
-./build.bat /install --dotenv
+./ecewo.bat /install --dotenv
 ```
 
 And create a `.env` file in the root directory of your project. Project structure should be like this:

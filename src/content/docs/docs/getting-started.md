@@ -18,12 +18,11 @@ git clone https://github.com/savashn/ecewo.git
 cd ecewo
 ```
 
-Ecewo includes some scripts to make configuration easier. You can view them by running `./build.sh`, or, if you prefer PowerShell, `./build.bat`. Here are the available configuration commands:
+Ecewo includes some scripts to make configuration easier. You can view them by running `./ecewo.sh`, or, if you prefer PowerShell, `./ecewo.bat`. Here are the available configuration commands:
 
 - `--run`       — Build and run
 - `--rebuild`   — Build from scratch
 - `--update`    — Update Ecewo
-- `--create`    — Create a starter project
 - `--migrate`   — Migrate the CMakeLists.txt file
 - `--install`   — Install packages
 
@@ -31,17 +30,19 @@ Let's create an example `hello world` app by running the following command:
 
 For Linux/macOS:
 ```
-chmod +x build.sh
-./build.sh --create
+chmod +x create.sh
+./create.sh
 ```
 
-For Windows (PowerShell):
+For Windows:
 
 ```
-./build.bat /create
+./create.bat
 ```
 
-**NOTE: You need to replace `--` with `/` for PowerShell.**
+>**NOTE:**
+>
+> You need to replace `--` with `/` for PowerShell.
 
 This command is going to create a basic structure in `src/` directory. Let's look into it.
 
@@ -99,16 +100,34 @@ And this is the entry point. The `server.h` header provides the `ecewo()` functi
 
 We can create our routers with `get()`, `post()`, `put()` and `del()` methods. They takes two parameters: First one is the path and second one is the handler.
 
-**NOTE:** We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
+> **NOTE:**
+>
+> We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
 
-**NOTE:** We have to use double quots `""` to define the route path every time. If we accidentally write single quots `''`, we'll get an error.
+>**NOTE:**
+>
+> We have to use double quots `""` to define the route path every time. If we accidentally write single quots `''`, we'll get an error.
 
 ```
 get("/", hello_world); // CORRECT
 get('/', hello_world); // INCORRECT
 ```
 
-Now we can run `./build.sh --run` or `./build.bat /run` command in the terminal to build and run. When we ran the suitable command; we’ll see following informations if our server is ready:
+Now we can run the following command in the terminal to build and run our server.
+
+For Linux/MacOS:
+```
+chmod +x ecewo.sh
+./ecewo.sh --run
+```
+
+For Windows:
+
+```
+./ecewo.bat /run
+```
+
+When we ran the suitable command; we’ll see following informations if our server is ready:
 
 ```
 ecewo [version]
@@ -117,4 +136,6 @@ Server is running at: http://localhost:4000
 
 Now if we go to `http://localhost:4000/` we'll see a basic `hello world!` text message.
 
-**NOTE:** When we create a new `.c` file, we need to run `./build.sh --migrate` command before running `./build.sh --run` (for PowerShell, must be `./build.bat /migrate` and `./build.bat /run`). It will automatically configure `CMakeLists.txt` file for us.
+>**NOTE:**
+>
+>When we create a new `.c` file, we need to run `./ecewo.sh --migrate` command before running `./ecewo.sh --run` (for PowerShell, must be `./ecewo.bat /migrate` and `./ecewo.bat /run`). It will automatically configure `CMakeLists.txt` file for us.
