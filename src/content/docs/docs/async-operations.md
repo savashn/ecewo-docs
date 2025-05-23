@@ -21,7 +21,7 @@ Also it's important that the task function has to end with `_work` suffix and th
 
 - The **handler** is the entry point. It receives the `req` and `res` objects and starts the chain by calling only the first `_work` using the `async()` macro.
 - The **_work()** function performs the actual async task. Once it completes, it returns either a success or failure result to the `_done` using `ok()` or `fail()`.
-- The **_done()** function processes the result received from the `_work`. It then either sends a response to the client using the `reply()` or triggers the next operation in the chain using the `await()`.
+- The **_done()** function processes the result received from the `_work`. It then either sends a response to the client or triggers the next operation in the chain using the `await()`.
 - The **free_async()** function will be called at the very end. It is responsible for freeing memory allocated by asynchronous operations. The function must be named `void free_async(void *foo)` — no other name or signature is allowed.
 
 So, the async logic follows this flow:
@@ -111,7 +111,7 @@ void calculate(Req *req, Res *res)
     ctx_t *ctx = malloc(sizeof(*ctx));
     if (!ctx)
     {
-        reply(res, 500, "text/plain", "Memory allocation failed");
+        text(500, "Memory allocation failed");
         return;
     }
 
@@ -121,7 +121,7 @@ void calculate(Req *req, Res *res)
 
     if (!ctx->req || !ctx->res)
     {
-        reply(res, 500, "text/plain", "Memory allocation failed");
+        text(500, "Memory allocation failed");
         free(ctx->req);
         free(ctx->res);
         free(ctx);
@@ -157,7 +157,7 @@ static void add_done(void *context, int success, char *error)
         // Otherwise, returns an error and free the memory
 
         ctx_t *c = context;
-        reply(c->res, 500, "text/plain", error);
+        reply(c->res, 500, "text/plain", error, SIZE_MAX); // See the note
         free_async(c);
     }
 }
@@ -178,6 +178,10 @@ static void add_work(async_t *task, void *context)
 
 A `_work` function has to come after its `_done` function all the time. The parameters `success` and `error` are handling under the hood.
 
+> **IMPORTANT!**
+>
+> Because we've moved the memory for `Req` and `Res` from the stack to the heap, we need to send a response using `reply()`. If we use any format other than `CBOR`, we have to pass `MAX_SIZE` as the last parameter. For `CBOR`, we have to give the body length instead of `MAX_SIZE`. See the [Using CBOR](/docs/using-cbor) chapter.
+
 ### Step 4: Write The Second Operation
 
 At the previously step, `add_done()` function called an operation named `multiply` by `await(context, multiply)` if the process is success. So let's write the `multiply` function.
@@ -194,7 +198,7 @@ static void multiply_done(void *context, int success, char *error)
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        reply(c->res, 500, "text/plain", error);
+        reply(c->res, 500, "text/plain", error, SIZE_MAX);
     }
     else
     {
@@ -203,7 +207,7 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            c->input, c->final);
 
-        reply(c->res, 200, "text/plain", buf);
+        reply(c->res, 200, "text/plain", buf, SIZE_MAX);
     }
 
     free_async(c);  // Free the memory that allocated by async
@@ -287,7 +291,7 @@ static void multiply_done(void *context, int success, char *error)
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        reply(c->res, 500, "text/plain", error);
+        reply(c->res, 500, "text/plain", error, SIZE_MAX);
     }
     else
     {
@@ -296,7 +300,7 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            c->input, c->final);
 
-        reply(c->res, 200, "text/plain", buf);
+        reply(c->res, 200, "text/plain", buf, SIZE_MAX);
     }
 
     free_async(c);  // Free the memory that allocated by async
@@ -337,7 +341,7 @@ static void add_done(void *context, int success, char *error)
         // Otherwise, returns an error and free the memory
 
         ctx_t *c = context;
-        reply(c->res, 500, "text/plain", error);
+        reply(c->res, 500, "text/plain", error, SIZE_MAX);
         free_async(c);
     }
 }
@@ -368,7 +372,7 @@ void calculate(Req *req, Res *res)
     ctx_t *ctx = malloc(sizeof(*ctx));
     if (!ctx)
     {
-        reply(res, 500, "text/plain", "Memory allocation failed");
+        text(500, "Memory allocation failed");
         return;
     }
 
@@ -378,7 +382,7 @@ void calculate(Req *req, Res *res)
 
     if (!ctx->req || !ctx->res)
     {
-        reply(res, 500, "text/plain", "Memory allocation failed");
+        text(500, "Memory allocation failed");
         free(ctx->req);
         free(ctx->res);
         free(ctx);

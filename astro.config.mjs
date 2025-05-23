@@ -27,7 +27,8 @@ export default defineConfig({
 						{ label: 'Authentication', slug: 'docs/authentication' },
 						{ label: 'Middleware', slug: 'docs/middleware' },
 						{ label: 'Environment Variables', slug: 'docs/environment-variables' },
-						{ label: 'Async Operations', slug: 'docs/async-operations' }
+						{ label: 'Async Operations', slug: 'docs/async-operations' },
+						{ label: 'Using CBOR', slug: 'docs/using-cbor' }
 					]
 				},
 				{

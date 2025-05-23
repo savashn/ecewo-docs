@@ -59,7 +59,7 @@ void hello_world(Req *req, Res *res);
 #endif
 ```
 
-This is defining handler. We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, `reply()` and many others— used for writing handlers and routers.
+This is defining handler. We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, and many others— used for writing handlers and routers.
 
 ```sh
 // src/handlers.c
@@ -68,17 +68,19 @@ This is defining handler. We include `"ecewo.h"` header, which is the main modul
 
 void hello_world(Req *req, Res *res)
 {
-    reply(res, 200, "text/plain", "hello world!");
+    text(200, "hello world!");
 }
 ```
 
-And this is our handler. We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `reply()` is using for sending a response to the client.
+And this is our handler. We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `text()` is a macro for sending `text/plain` responses to the client.
 
-When we are done with the handler, we should send a response to the client via `reply()` function. Basically, it takes 4 parameters:
-- The `res` parameter,
-- Status code,
-- Content-Type,
-- Response body
+When we are done with the handler, we need to send a response to the client using one of the following macros:
+- `text()` is for `text/plain` responses,
+- `html()` is for `html/plain` responses,
+- `json()` is for `application/json` responses,
+- `cbor()` is for `application/cbor` responses.
+
+Basically, they take 2 parameters: a status code and a response body — except for `cbor()`, which takes three: a status code, a response body, and the length of the response body.
 
 ```sh
 // src/main.c

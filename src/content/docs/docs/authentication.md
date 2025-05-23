@@ -80,14 +80,14 @@ void handle_login(Req *req, Res *res)
 
     if (body == NULL)
     {
-        reply(res, 400, "text/plain", "Missing request body");
+        text(400, "Missing request body");
         return;
     }
 
     cJSON *json = cJSON_Parse(body);
     if (!json)
     {
-        reply(res, 400, "text/plain", "Invalid JSON");
+        text(400, "Invalid JSON");
         return;
     }
 
@@ -97,7 +97,7 @@ void handle_login(Req *req, Res *res)
     if (!username || !password)
     {
         cJSON_Delete(json);
-        reply(res, 400, "text/plain", "Missing fields");
+        text(400, "Missing fields");
         return;
     }
 
@@ -107,7 +107,7 @@ void handle_login(Req *req, Res *res)
     if (rc != SQLITE_OK)
     {
         cJSON_Delete(json);
-        reply(res, 500, "text/plain", "DB prepare failed");
+        text(500, "DB prepare failed");
         return;
     }
 
@@ -131,11 +131,11 @@ void handle_login(Req *req, Res *res)
         printf("Session ID: %s\n", sid);
         printf("Session JSON: %s\n", sess->data);
 
-        reply(res, 200, "text/plain", "Login successful!");
+        text(200, "Login successful!");
     }
     else
     {
-        reply(res, 401, "text/plain", "Invalid username or password");
+        text(401, "Invalid username or password");
     }
 
     sqlite3_finalize(stmt);
@@ -196,13 +196,13 @@ void handle_logout(Req *req, Res *res)
 
     if (!sess)
     {
-        reply(res, 400, "text/plain", "You have to login first");
+        text(400, "You have to login first");
     }
     else
     {
         free_session(sess);                   // Delete session from the memory
         set_cookie(res, "session_id", "", 0); // Time out cookie, the browser will delete it
-        reply(res, 302, "text/plain", "Logged out");
+        text(302, "Logged out");
     }
 }
 ```
@@ -296,10 +296,7 @@ void handle_session_data(Req *req, Res *res)
 
     if (!user_session)
     {
-        reply(res,
-              401,
-              "text/plain",
-              "Error: Authentication required");
+        text(401, "Error: Authentication required");
         return;
     }
 
@@ -308,10 +305,7 @@ void handle_session_data(Req *req, Res *res)
     if (!session_data)
     {
         /* If parsing fails, return an error */
-        reply(res,
-              500,
-              "text/plain",
-              "Error: Failed to parse session data");
+        text(500, "Error: Failed to parse session data");
         return;
     }
 
@@ -320,15 +314,12 @@ void handle_session_data(Req *req, Res *res)
     if (!session_str)
     {
         cJSON_Delete(session_data);
-        reply(res,
-              500,
-              "text/plain",
-              "Error: Failed to serialize session data");
+        text(500, "Error: Failed to serialize session data");
         return;
     }
 
     /* Send the session JSON back to the client */
-    reply(res, 200, "application/json", session_str);
+    json(200, session_str);
 
     /* Clean up */
     free(session_str);
@@ -389,10 +380,7 @@ void handle_session_data(Req *req, Res *res)
 
     if (!user_session)
     {
-        reply(res,
-              401,
-              "text/plain",
-              "Error: Authentication required");
+        text(401, "Error: Authentication required");
         return;
     }
 
@@ -401,10 +389,7 @@ void handle_session_data(Req *req, Res *res)
     if (!session_data)
     {
         /* If parsing fails, return an error */
-        reply(res,
-              500,
-              "text/plain",
-              "Error: Failed to parse session data");
+        text(500, "Error: Failed to parse session data");
         return;
     }
 
@@ -425,15 +410,12 @@ void handle_session_data(Req *req, Res *res)
     if (!json_str)
     {
         cJSON_Delete(session_data);
-        reply(res,
-              500,
-              "text/plain",
-              "Error: Failed to serialize session data");
+        text(500, "Error: Failed to serialize session data");
         return;
     }
 
     /* Send the session JSON back to the client */
-    reply(res, 200, "application/json", json_str);
+    json(200, json_str);
 
     /* Clean up */
     free(json_str);
@@ -471,12 +453,12 @@ void handle_protected(Req *req, Res *res)
      // If the user hasn't, return an error with 401 status code
     if (!sess)
     {
-        reply(res, 401, "text/plain", "You must be logged in.");
+        text(401, "You must be logged in.");
         return;
     }
 
     // If has, let the user in
-    reply(res, 200, "text/plain", "Welcome to the protected area!");
+    text(200, "Welcome to the protected area!");
 }
 ```
 
@@ -530,10 +512,7 @@ void edit_profile(Req *req, Res *res)
     Session *sess = get_session(&req->headers);
     if (!sess)
     {
-        reply(res,
-              401,
-              "text/plain",
-              "Authentication required");
+        text(401, "Authentication required");
         return;
     }
 
@@ -541,10 +520,7 @@ void edit_profile(Req *req, Res *res)
     cJSON *session_data = cJSON_Parse(sess->data);
     if (!session_data)
     {
-        reply(res,
-              500,
-              "text/plain",
-              "Invalid session data");
+        text(500, "Invalid session data");
         return;
     }
 
@@ -556,10 +532,7 @@ void edit_profile(Req *req, Res *res)
     if (!slug || strcmp(slug, username->valuestring) != 0)
     {
         cJSON_Delete(session_data);
-        reply(res,
-              403,
-              "text/plain",
-              "Unauthorized: Slug does not match session username");
+        text(403, "Unauthorized: Slug does not match session username");
         return;
     }
 
@@ -574,7 +547,7 @@ void edit_profile(Req *req, Res *res)
         snprintf(error_msg, sizeof(error_msg),
                  "{\"error\":\"DB error: %s\"}", errmsg);
         cJSON_Delete(session_data);
-        reply(res, 500, "application/json", error_msg);
+        json(500, error_msg);
         return;
     }
     sqlite3_bind_text(stmt, 1, slug, -1, SQLITE_STATIC);
@@ -591,17 +564,14 @@ void edit_profile(Req *req, Res *res)
         cJSON_AddStringToObject(user_json, "name", name);
 
         char *json_string = cJSON_PrintUnformatted(user_json);
-        reply(res, 200, "application/json", json_string);
+        json(200, json_string);
 
         cJSON_Delete(user_json); // free cJSON memory
         free(json_string);       // free json_string memory
     }
     else
     {
-        reply(res,
-              404,
-              "text/plain",
-              "User not found");
+        text(404, "User not found");
     }
 
     /* Cleanup */

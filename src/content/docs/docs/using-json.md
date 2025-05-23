@@ -51,10 +51,8 @@ void hello_world(Req *req, Res *res)
     // Convert the JSON object to a string
     char *json_string = cJSON_PrintUnformatted(json);
 
-    // Send the response with 200 status code
-    // content-type must be "application/json" to send a json
-
-    reply(res, 200, "application/json", json_string);
+    // Send the json response with 200 status code
+    json(200, json_string);
 
     // Free the memory that allocated by jansson
     cJSON_Delete(json);
@@ -113,7 +111,7 @@ void handle_user(Req *req, Res *res)
 
     if (body == NULL)
     {
-        reply(res, 400, "text/plain", "Missing request body");
+        text(400, "Missing request body");
         return;
     }
 
@@ -121,7 +119,7 @@ void handle_user(Req *req, Res *res)
 
     if (!json)
     {
-        reply(res, "400 Bad Request", "text/plain", "Invalid JSON");
+        text(400, "Invalid JSON");
         return;
     }
 
@@ -132,7 +130,7 @@ void handle_user(Req *req, Res *res)
     if (!name || !surname || !username)
     {
         cJSON_Delete(json);
-        reply(res, 400, "text/plain", "Missing fields");
+        text(400, "Missing fields");
         return;
     }
 
@@ -141,7 +139,7 @@ void handle_user(Req *req, Res *res)
     printf("Username: %s\n", username);
 
     cJSON_Delete(json);
-    reply(res, 200, "text/plain", "Success!");
+    text(200, "Success!");
 }
 ```
 

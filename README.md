@@ -6,4 +6,4 @@
 
 <br /><br />
 
-The documentation of [Ecewo](https://github.com/savashn/ecewo), which is a modern microframework for web development in C.
+The documentation of [Ecewo](https://github.com/savashn/ecewo), which is a C microframework for modern web development.
