@@ -224,7 +224,7 @@ See the [exact example](/docs/using-json#) implemented with cJSON.
 
 ## Test
 
-Now ne need to test our CBOR handler. We will use Python for testing our `CBOR` handlers, but you can use any tool you want.
+Now ne need to test our CBOR handler. We will use Python for testing, but you can use any tool you want.
 
 ### Test Encoding CBOR
 
@@ -247,7 +247,7 @@ curl -X GET http://localhost:4000/cbor -o hello_world.cbor
 
 This command will generate a `hello_world.cbor` binary in the root directory.
 
-Now we need to read the inside of it. Cut that generated binary file, create a new folder outside of our project and paste it there. The new folder is for testing our `CBOR` binaries and they shouldn't be in the same directory with our Ecewo project.
+Now we need to read the inside of it. Cut that generated binary file, create a new folder outside of our project and paste it there. The new folder is for testing our CBOR binaries and they shouldn't be in the same directory with our Ecewo project.
 
 Run `pip install cbor2` and create a Python file:
 

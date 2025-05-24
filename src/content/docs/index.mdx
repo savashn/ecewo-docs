@@ -24,28 +24,32 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 <br/>
 
 <CardGrid stagger>
+  <Card title="Everything Is A Plugin" icon="puzzle">
+    Ecewo provides a minimal core by design. Everything else is a plugin, so you only install and use what you need.
+  </Card>
+
 	<Card title="Async Support" icon="seti:c">
 		Ecewo is built on [libuv](https://github.com/libuv/libuv), a native C library designed for non-blocking asynchronous I/O operations and originally developed for Node.js.
 	</Card>
 
-  <Card title="Simple As Express.js" icon="node">
-    Inspired by the simplicity of Express.js, it remains just as simple — but offers much more power.
+  <Card title="Simple As Node.js" icon="node">
+    Inspired by the simplicity of Express.js and plugin system of Fastify. It remains just as simple — but offers much more power.
 	</Card>
 
-	<Card title="Built-in JSON Support" icon="seti:json">
-    Ecewo optionally includes [cJSON](https://github.com/DaveGamble/cJSON), a built-in C library for working with JSON.
+	<Card title="Built-in JSON and CBOR Support" icon="seti:json">
+    Ecewo optionally includes [cJSON](https://github.com/DaveGamble/cJSON) for working with JSON and [TinyCBOR](https://github.com/intel/tinycbor) for working with CBOR — offered as plugins of course!
 	</Card>
 
   <Card title="Middleware Structure" icon="puzzle">
-		Express.js-style route-specific and global middlewares are supported.
+		Offered Express.js-style route-specific and global middlewares.
 	</Card>
 
   <Card title="Env Configuration" icon="setting">
-		Ecewo optionally comes with [dotenv-c](https://github.com/Isty001/dotenv-c), a built-in `.env` file parser for C.
+		Ecewo optionally offers [dotenv-c](https://github.com/Isty001/dotenv-c), a built-in `.env` file parser for C.
 	</Card>
 
   <Card title="Authentication Mechanism" icon="seti:lock">
-		You can easily do authentication and authorization using the build-in session management mechanism.
+		You can easily do authentication and authorization using the session management plugin.
 	</Card>
 
 	<Card title="Read The Docs" icon="open-book">
@@ -70,6 +74,6 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
   <br /><br />
 
-  <p style={{fontSize: '2rem'}}>v0.21.0</p>
+  <p style={{fontSize: '2rem'}}>v0.21.1</p>
   <div>Copyright 2025 &copy; <a href="https://github.com/savashn">Savas Sahin</a></div>
 </div>

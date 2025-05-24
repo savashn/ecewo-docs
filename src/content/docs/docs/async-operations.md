@@ -3,31 +3,30 @@ title: Async Operations
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-Since C doesn’t natively support asynchronous operations, this can be one of the more challenging aspects of working with Ecewo. As a result, async behavior may differ from what you're used to.
+Since C doesn’t natively support asynchronous operations, this can be one of the more challenging aspects of working with Ecewo. As a result, async behavior may differ a bit from what you're used to.
 
-However, Ecewo offers an usual solution to this unusual situation for web developing: The `async()` and `await()` macros provided out of the box. These macros are simplify working with `libuv`, a native C library designed for asynchronous I/O operations.
+However, Ecewo offers an usual solution to this unusual situation for web developing: The `async()` and `await()` macros provided out of the box. These macros are simplify working with [libuv](https://github.com/libuv/libuv), a native C library designed for asynchronous I/O operations.
 
 ## The Async Logic
 
 Async operations in Ecewo are implemented as an operation chain. A chain includes:
 - One entry point, which is our **handler**,
 - One operation that includes at least two functions: A **_work** and a **_done**,
-- One `free_async()` function to free the memory that allocated by async operation,
 - One **struct** that includes our context.
 
-Each operation is composed of two primary parts: A `_work` function that performs the **task** and a `_done` function that handles its **completion**. These two parts are inseparable and must always be used together.
+Each operation is composed of two primary parts: A `_work` function that performs the **task** and a `_done` function that handles its **completion**. These two parts are inseparable and must always be used together. Every async handler requires a `_work` that does the job, and every `_work` requires a `_done` to process its result.
 
-Also it's important that the task function has to end with `_work` suffix and the completion function has to end with `_done` suffix. For example, these functions may be like `something_work()` and `something_done()`.
+> **NOTE:**
+> Also it's important that the task function has to end with `_work` suffix and the completion function has to end with `_done` suffix. For example, the functions must be named like `something_work()` and `something_done()`.
 
 - The **handler** is the entry point. It receives the `req` and `res` objects and starts the chain by calling only the first `_work` using the `async()` macro.
 - The **_work()** function performs the actual async task. Once it completes, it returns either a success or failure result to the `_done` using `ok()` or `fail()`.
-- The **_done()** function processes the result received from the `_work`. It then either sends a response to the client or triggers the next operation in the chain using the `await()`.
-- The **free_async()** function will be called at the very end. It is responsible for freeing memory allocated by asynchronous operations. The function must be named `void free_async(void *foo)` — no other name or signature is allowed.
+- The **_done()** function processes the result received from the `_work`. It then either sends a response to the client or triggers the next operation in the chain using the `await()` macro.
 
 So, the async logic follows this flow:
 
 ```
-handler() -> _work() -> _done() -> free_async()
+handler() -> _work() -> _done()
 ```
 
 In Ecewo, asynchronous operations work as chained from the bottom up. So our entry point —which is the **handler**— must be at the bottom.
@@ -37,7 +36,6 @@ If we imagine that we have 2 async operations in the chain, our `async` process 
 ```sh
 // src/async_handler.c
 
-static void free_async(void *context){...}                              // free mem
 static void second_done(void *context, int success, char *error){...}   // 2. done, exit
 static void second_work(async_t *task, void *context){...}              // 2. work
 static void first_done(void *context, int success, char *error){...}    // 1. done
@@ -57,13 +55,13 @@ The example will be a very basic calculator that receives a number from `req->pa
 
 ### Step 0: Install Async Plugin
 
-For Shell Script:
+With Shell:
 
 ```
 ./ecewo.sh --install --async
 ```
 
-For PowerShell:
+With PowerShell:
 
 ```
 ./ecewo.bat /install --async
@@ -89,7 +87,7 @@ typedef struct
 } ctx_t;
 ```
 
-`Req *req` and `Res *res` must be in the struct everytime. The others are the variables we will use in the async operations.
+`Req *req` and `Res *res` must be in the struct everytime, we move their memory between the chains. The others are the variables we will use in the async operations.
 
 ### Step 2: Create An Entry Point
 
@@ -137,7 +135,7 @@ void calculate(Req *req, Res *res)
 }
 ```
 
-The `async(ctx, add)` takes two parameters: First one is the context, second one is the name of `_work` and `_done` functions. So, our first async operation must be called as `add_work` and `add_done`.
+The `async(ctx, add)` takes two parameters: First one is the context, second one is the name of `_work` and `_done` functions. So, our first async operation must be called as `add_work` and `add_done`, because we pass them as `async(ctx, add);` in this example.
 
 ### Step 3: Write The First Operation
 
@@ -154,11 +152,19 @@ static void add_done(void *context, int success, char *error)
     }
     else
     {
-        // Otherwise, returns an error and free the memory
+        // Assign the context
+        ctx_t *ctx = context;
 
-        ctx_t *c = context;
-        reply(c->res, 500, "text/plain", error, SIZE_MAX); // See the note
-        free_async(c);
+        // Assign ctx->res to a local variable because the text() macro waits for 'res'
+        Res *res = ctx->res;
+
+        // Send a response
+        text(500, error);
+
+        // Free the allocated memories
+        free(ctx->req);
+        free(ctx->res);
+        free(ctx);
     }
 }
 
@@ -166,21 +172,17 @@ static void add_done(void *context, int success, char *error)
 static void add_work(async_t *task, void *context)
 {
     // Assign the context
-    ctx_t *c = context;
+    ctx_t *ctx = context;
 
     // Add 10 to the input
-    c->intermediate = c->input + 10;
+    ctx->intermediate = ctx->input + 10;
 
     // Go to the _done function
     ok(task);
 }
 ```
 
-A `_work` function has to come after its `_done` function all the time. The parameters `success` and `error` are handling under the hood.
-
-> **IMPORTANT!**
->
-> Because we've moved the memory for `Req` and `Res` from the stack to the heap, we need to send a response using `reply()`. If we use any format other than `CBOR`, we have to pass `MAX_SIZE` as the last parameter. For `CBOR`, we have to give the body length instead of `MAX_SIZE`. See the [Using CBOR](/docs/using-cbor) chapter.
+> A `_work` function must be defined after its corresponding `_done` function, since it needs to access or reference it.
 
 ### Step 4: Write The Second Operation
 
@@ -193,34 +195,40 @@ At the previously step, `add_done()` function called an operation named `multipl
 static void multiply_done(void *context, int success, char *error)
 {
     // Assign the context
-    ctx_t *c = context;
+    ctx_t *ctx = context;
+
+    // Assign ctx->res to a local variable because the text() macro waits for 'res'
+    Res *res = ctx->res;
 
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        reply(c->res, 500, "text/plain", error, SIZE_MAX);
+        text(500, error);
     }
     else
     {
         char buf[128];
         int len = snprintf(buf, sizeof(buf),
                            "((%ld) + 10) * 5 = %ld",
-                           c->input, c->final);
+                           ctx->input, ctx->final);
 
-        reply(c->res, 200, "text/plain", buf, SIZE_MAX);
+        text(200, buf);
     }
 
-    free_async(c);  // Free the memory that allocated by async
+    // Ensure memory is always freed regardless of success/failure
+    free(ctx->req);
+    free(ctx->res);
+    free(ctx);
 }
 
 // _work function of the second operation:
 static void multiply_work(async_t *task, void *context)
 {
     // Assign the context
-    ctx_t *c = context;
+    ctx_t *ctx = context;
 
     // example fail case: intermediate result is too large
-    if (c->intermediate > 1000)
+    if (ctx->intermediate > 1000)
     {
         // Send an "error" to the "multiply_done()" function
         fail(task, "Intermediate too large to multiply");
@@ -228,30 +236,11 @@ static void multiply_work(async_t *task, void *context)
     else
     {
         // multiply intermediate result by 5
-        c->final = c->intermediate * 5;
+        ctx->final = ctx->intermediate * 5;
 
         // Send a "success" to the "multiply_done()" function
         ok(task);
     }
-}
-```
-
-### Step 5: Write The `free_async()` Function
-
-We have a `free_async()` function for memory safety and it is responsible for freeing the allocated memory. This function is called if an error occurs at any point in the asynchronous chain or when our async operations are done.
-
-The `free_async()` function must be placed directly below the struct definition, as it is intended to be the very last function to run. If we have dynamically allocated memory in the chain, we can free it there. Even if we don't, we must still free the memory used by the `context`.
-
-In our example, we need to free only the `context` memory:
-
-```sh
-// Cleanup context
-static void free_async(void *ctx)
-{
-    ctx_t *c = ctx;
-    free(c->req);
-    free(c->res);
-    free(c);
 }
 ```
 
@@ -260,8 +249,10 @@ static void free_async(void *ctx)
 In the end, the `async_handler.c` file should look like this:
 
 ```sh
-#include "ecewo.h"  // For our handler, which is the entry point
-#include "async.h"  // For asynchronous operations
+// src/async_handler.c
+
+#include "async.h"
+#include "ecewo.h"
 
 // Context for chained operations
 typedef struct
@@ -273,47 +264,44 @@ typedef struct
     long final;
 } ctx_t;
 
-// Cleanup context
-static void free_async(void *ctx)
-{
-    ctx_t *c = ctx;
-    free(c->req);
-    free(c->res);
-    free(c);
-}
-
 // _done function of the second operation:
 static void multiply_done(void *context, int success, char *error)
 {
     // Assign the context
-    ctx_t *c = context;
+    ctx_t *ctx = context;
+
+    // Assign ctx->res to a local variable because the text() macro waits for 'res'
+    Res *res = ctx->res;
 
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        reply(c->res, 500, "text/plain", error, SIZE_MAX);
+        text(500, error);
     }
     else
     {
         char buf[128];
         int len = snprintf(buf, sizeof(buf),
                            "((%ld) + 10) * 5 = %ld",
-                           c->input, c->final);
+                           ctx->input, ctx->final);
 
-        reply(c->res, 200, "text/plain", buf, SIZE_MAX);
+        text(200, buf);
     }
 
-    free_async(c);  // Free the memory that allocated by async
+    // Ensure memory is always freed regardless of success/failure
+    free(ctx->req);
+    free(ctx->res);
+    free(ctx);
 }
 
 // _work function of the second operation:
 static void multiply_work(async_t *task, void *context)
 {
     // Assign the context
-    ctx_t *c = context;
+    ctx_t *ctx = context;
 
     // example fail case: intermediate result is too large
-    if (c->intermediate > 1000)
+    if (ctx->intermediate > 1000)
     {
         // Send an "error" to the "multiply_done()" function
         fail(task, "Intermediate too large to multiply");
@@ -321,7 +309,7 @@ static void multiply_work(async_t *task, void *context)
     else
     {
         // multiply intermediate result by 5
-        c->final = c->intermediate * 5;
+        ctx->final = ctx->intermediate * 5;
 
         // Send a "success" to the "multiply_done()" function
         ok(task);
@@ -334,15 +322,23 @@ static void add_done(void *context, int success, char *error)
     if (success)
     {
         await(context, multiply);
-        // If success, "await" calls the next task named "multiply"
+        // if success, "await" calls the next task named "multiply"
     }
     else
     {
-        // Otherwise, returns an error and free the memory
+        // Assign the context
+        ctx_t *ctx = context;
 
-        ctx_t *c = context;
-        reply(c->res, 500, "text/plain", error, SIZE_MAX);
-        free_async(c);
+        // Assign ctx->res to a local variable because the text() macro waits for 'res'
+        Res *res = ctx->res;
+
+        // Send a response
+        text(500, error);
+
+        // Free the allocated memories
+        free(ctx->req);
+        free(ctx->res);
+        free(ctx);
     }
 }
 
@@ -350,10 +346,10 @@ static void add_done(void *context, int success, char *error)
 static void add_work(async_t *task, void *context)
 {
     // Assign the context
-    ctx_t *c = context;
+    ctx_t *ctx = context;
 
     // Add 10 to the input
-    c->intermediate = c->input + 10;
+    ctx->intermediate = ctx->input + 10;
 
     // Go to the _done function
     ok(task);
@@ -365,7 +361,7 @@ void calculate(Req *req, Res *res)
     // Get the number from request params
     const char *num_str = get_req(&req->params, "num");
 
-    // Converte it to a number
+    // Convert it to a number
     long num = num_str ? strtol(num_str, NULL, 10) : 0;
 
     // Allocate memory for async
@@ -388,6 +384,9 @@ void calculate(Req *req, Res *res)
         free(ctx);
         return;
     }
+
+    *ctx->req = *req;
+    *ctx->res = *res;
 
     ctx->input = num;
     ctx->intermediate = 0;
