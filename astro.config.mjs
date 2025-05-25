@@ -24,7 +24,7 @@ export default defineConfig({
 						{ label: 'Handling Requests', slug: 'docs/handling-requests' },
 						{ label: 'Using JSON', slug: 'docs/using-json' },
 						{ label: 'Using A Database', slug: 'docs/using-a-database' },
-						{ label: 'Authentication', slug: 'docs/authentication' },
+						{ label: 'Auth', slug: 'docs/auth' },
 						{ label: 'Middleware', slug: 'docs/middleware' },
 						{ label: 'Environment Variables', slug: 'docs/environment-variables' },
 						{ label: 'Async Operations', slug: 'docs/async-operations' },

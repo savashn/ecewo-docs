@@ -1,11 +1,118 @@
 ---
-title: Authentication
+title: Authentication and Authorization
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
+## Cookies
+
+Ecewo offers a `cookie` plugin to get or set a cookie:
+- `get_cookie()` to get the `Cookie` header
+- `set_cookie()` to set a `Cookie` header.
+
+### Install Cookie Plugin
+
+For Linux/MacOS:
+```
+./ecewo.sh --install --cookie
+```
+
+For Windows:
+```
+./ecewo.bat /install --cookie
+```
+
+### Usage
+
+Let's create three new routes. One for setting a cookie, one for getting the cookie, and one for getting all the cookies:
+
+```
+// src/main.c
+
+#include "server.h"
+#include "handlers.h"
+
+int main()
+{
+    init_router();
+
+    get("/set-cookie", set_cookie_handler);
+    get("/get-cookie", get_cookie_handler);
+    get("/all-cookies", get_all_cookies);
+
+    ecewo(4000);
+    final_router();
+    return 0;
+}
+```
+
+```
+// src/handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void set_cookie_handler(Req *req, Res *res);
+void get_cookie_handler(Req *req, Res *res);
+void get_all_cookies(Req *req, Res *res);
+
+#endif
+```
+
+```
+// src/handlers.c
+
+#include "handlers.h"
+#include "cookie.h"
+
+void set_cookie_handler(Req *req, Res *res)
+{
+    set_cookie(res, "theme", "dark", 3600); // 1 hour
+    set_cookie(res, "name", "john", 7200);  // 2 hour
+    text(200, "Cookies sent!");
+}
+
+void get_cookie_handler(Req *req, Res *res)
+{
+    char *theme = get_cookie(&req->headers, "theme");
+
+    if (!theme)
+    {
+        text(404, "Cookies not found");
+        return;
+    }
+
+    text(200, theme);
+    free(theme);
+}
+
+void get_all_cookies(Req *req, Res *res)
+{
+    const char *cookies = get_req(&req->headers, "Cookie");
+
+    if (!cookies)
+    {
+        text(404, "No cookies found");
+        return;
+    }
+
+    text(200, cookies);
+}
+```
+
+`get_cookie()` actually runs `get_req()` under the hood, and it searchs the `Cookie` header only. Remember, you have to free its memory after you use.
+
+When we send a request to `http://localhost:4000/set-cookie` via POSTMAN, we'll receive a `Cookies sent!` response. If we then check the `Cookies` tab, we'll see the two cookies that were sent.
+
+Let's send a response to `http://localhost:4000/all-cookies` to check the cookies that were sent. When we send the request, the response we get should be `name=john; theme=dark`.
+
+If we want to get a specific cookie only, we can use `get_cookie()` like shown in the example. Let's send another request to `http://localhost:4000/get-cookie`, and we'll get the response `dark`.
+
+## Sessions
+
 Ecewo offers some session management APIs for authentication and authorization:
 
-- `set_cookie()` to set cookie
 - `create_session()` to create a session
 - `find_session()` to find a session in memory
 - `get_session()` to get the session from request
@@ -15,20 +122,22 @@ With the power of these APIs, we can easily manage the authentication and author
 
 Let's make an authentication example and see how it works.
 
-## Installation
+### Install Session Plugin
 
 Run this command in the terminal:
 
 ```
-./ecewo.sh --install --session
+./ecewo.sh --install --cookie --cjson --session
 ```
 
 For PowerShell:
 ```
-./ecewo.bat /install --session
+./ecewo.bat /install --cookie --cjson --session
 ```
 
-## Login
+Since `session` depends on `cookie` and `cjson` plugins, we also need to install them if we didn't yet.
+
+### Login
 
 We have two test users:
 
@@ -180,7 +289,7 @@ Let's send a request to `http://localhost:4000/login` with that body:
 
 If login is successful, we'll see a **"Login successful!"** response and a header like `"Cookie": "session_id=VKdbMRbqMhh_40F6ef2FreEba6JqkH16"` will be added to the headers.
 
-## Logout
+### Logout
 
 We also write a logout handler to use after login. Let's add these parts:
 
@@ -264,7 +373,11 @@ If we send one more request, we'll see:
 You have to login first
 ```
 
-## Getting Session Data
+> **WHAT'S THE DIFFERENCE BETWEEN `get_cookie()` and `get_session()`?**
+>
+> `get_session()` is running `get_cookie()` under the hood, but it's specialized to extract the `session_id` from the `Cookie` header. While you need to manually free the memory returned by `get_cookie()`, you don't need to do that with `get_session()` — it handles memory management internally.
+
+### Getting Session Data
 
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
@@ -432,7 +545,7 @@ The output will be:
 }
 ```
 
-## Protected Routes
+### Protected Routes
 
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
@@ -607,7 +720,7 @@ When we logged in as johndoe and send a request again, here is what we will get:
 }
 ```
 
-## Notes
+### Notes
 
 > **NOTE 1**
 >
