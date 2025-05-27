@@ -9,7 +9,7 @@ Let's see how it basically works.
 
 ## Request Body
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -22,7 +22,7 @@ void print_body(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -34,7 +34,7 @@ void print_body(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -52,7 +52,7 @@ int main()
 
 Let's send a `POST` request to the `http://localhost:4000/print-body` with this body:
 
-```
+```json
 {
     "name": "John",
     "surname": "Doe",
@@ -62,7 +62,7 @@ Let's send a `POST` request to the `http://localhost:4000/print-body` with this 
 
 We'll receive a `Success` message and see the body in the console:
 
-```
+```json
 Body: {
     "name": "John",
     "surname": "Doe",
@@ -74,9 +74,9 @@ For more advanced usage; see [Using JSON](/docs/using-json) chapter.
 
 ## Request Params
 
-Let's take a specific user by params. We can access the params using the `get_req(&req->params, "params")` API. Let's write a handler that gives us the "slug":
+Let's take a specific user by params. We can access the params using the `get_params("slug");` API. Let's write a handler that gives us the "slug":
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -89,14 +89,14 @@ void send_params(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
 
 void send_params(Req *req, Res *res)
 {
-    const char *slug = get_req(&req->params, "slug"); // We got the params
+    const char *slug = get_params("slug"); // We got the params
 
     if (slug == NULL)
     {
@@ -108,7 +108,7 @@ void send_params(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -128,7 +128,7 @@ Recompile the program and send a request to `http://localhost:4000/send-params/t
 
 We can define more than one slug if we need using the same way. Here is an example:
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -144,7 +144,7 @@ int main()
 }
 ```
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -157,15 +157,15 @@ void print_more_params(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
 
 void print_more_params(Req *req, Res *res)
 {
-    const char *key = get_req(&req->params, "key");     // We got the /:key
-    const char *value = get_req(&req->params, "value"); // We got the /:value
+    const char *key = get_params("key");        // We got the /:key
+    const char *value = get_params("value");    // We got the /:value
 
     if (key == NULL || value == NULL)
     {
@@ -187,9 +187,9 @@ Key slug: foo Value slug: bar
 
 ## Request Query
 
-Like the `params`, we can use `get_req(&req->query, "query")` to get the query. Let's rewrite a handler using `query`: 
+Just like the `params`, we can use `get_query("query");` to get the query params. Let's rewrite a handler using `query`: 
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -205,7 +205,7 @@ int main()
 }
 ```
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -218,15 +218,15 @@ void print_query(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "ecewo.h"
 
 void print_query(Req *req, Res *res)
 {
-    const char *name = get_req(&req->query, "name");
-    const char *surname = get_req(&req->query, "surname");
+    const char *name = get_query("name");
+    const char *surname = get_query("surname");
 
     if (name == NULL || surname == NULL)
     {
@@ -248,13 +248,13 @@ Name: john Surname: doe
 
 ## Request Headers
 
-Just like `params` and `query`, we can also access request headers using the `get_req(&req->headers, "header")` API.
+Just like `params` and `query`, we can also access request headers using the `get_headers("header");` API.
 Ecewo also provides different APIs for authorization and session-based authentication.
 However, if you simply want to access a specific item in `req->headers`, you can do so directly.
 
 Typically, a standard `GET` request with `POSTMAN` have some headers like:
 
-```
+```json
 {
     "User-Agent": "PostmanRuntime/7.43.3",
     "Accept": "*/*",
@@ -267,7 +267,7 @@ Typically, a standard `GET` request with `POSTMAN` have some headers like:
 
 Let's say, we need the `User-Agent` header:
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -281,26 +281,26 @@ void get_user_agent(Req *req, Res *res);
 ```
 
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
 
 void get_user_agent(Req *req, Res *res)
 {
-    const char *header = get_req(&req->headers, "User-Agent");
+    const char *user_agent = get_headers("User-Agent");
 
-    if (header == NULL)
+    if (user_agent == NULL)
     {
         text(400, "Missing required parameter.");
         return;
     }
 
-    text(200, header);
+    text(200, user_agent);
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"

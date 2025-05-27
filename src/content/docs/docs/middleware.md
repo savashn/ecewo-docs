@@ -9,7 +9,7 @@ Ecewo provides a middleware feauture, which looks like Express.js. Let's see how
 
 Let's say we have two handlers, one for users and one for admin.
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -24,7 +24,7 @@ void admin_handler(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -47,7 +47,7 @@ void admin_handler(Req *req, Res *res)
 
 Now let's write two middlewares for those handlers.
 
-```sh
+```c
 // src/middlewares.h
 
 #ifndef MIDDLEWARES_H
@@ -61,7 +61,7 @@ int admin(Req *req, Res *res, Chain *chain);
 #endif
 ```
 
-```sh
+```c
 // src/middlewares.c
 
 #include "middlewares.h"
@@ -83,7 +83,7 @@ At the end of a middleware, you must call `next()` —just like in Express.js—
 
 We have a `use()` macro to call the middleware before the handler.
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -108,7 +108,7 @@ int main()
 
 We have `hook()` API to define global middlewares. Let's implement a `logger` in `middlewares.c` apply it before every handler.
 
-```sh
+```c
 // src/middlewares.h
 
 #ifndef MIDDLEWARES_H
@@ -121,7 +121,7 @@ int logger(Req *req, Res *res, Chain *chain);
 #endif
 ```
 
-```sh
+```c
 // src/middlewares.c
 
 #include "middlewares.h"
@@ -133,7 +133,7 @@ int logger(Req *req, Res *res, Chain *chain)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"

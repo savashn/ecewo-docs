@@ -25,7 +25,7 @@ For Windows:
 
 Let's create three new routes. One for setting a cookie, one for getting the cookie, and one for getting all the cookies:
 
-```
+```c
 // src/main.c
 
 #include "server.h"
@@ -45,7 +45,7 @@ int main()
 }
 ```
 
-```
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -60,7 +60,7 @@ void get_all_cookies(Req *req, Res *res);
 #endif
 ```
 
-```
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -89,7 +89,7 @@ void get_cookie_handler(Req *req, Res *res)
 
 void get_all_cookies(Req *req, Res *res)
 {
-    const char *cookies = get_req(&req->headers, "Cookie");
+    const char *cookies = get_headers("Cookie");
 
     if (!cookies)
     {
@@ -101,7 +101,7 @@ void get_all_cookies(Req *req, Res *res)
 }
 ```
 
-`get_cookie()` actually runs `get_req()` under the hood, and it searchs the `Cookie` header only. Remember, you have to free its memory after you use.
+`get_cookie()` actually runs `get_headers()` under the hood, and it searchs the `Cookie` header only. Remember, you have to free its memory after you use.
 
 When we send a request to `http://localhost:4000/set-cookie` via POSTMAN, we'll receive a `Cookies sent!` response. If we then check the `Cookies` tab, we'll see the two cookies that were sent.
 
@@ -141,18 +141,18 @@ Since `session` depends on `cookie` and `cjson` plugins, we also need to install
 
 We have two test users:
 
-```
+```json
     [
         {
             "id": 1,
             "name": "John",
-            "username": "johndoe"
+            "username": "johndoe",
             "password": "123123"
         },
         {
             "id": 2,
             "name": "Jane",
-            "username": "janedoe"
+            "username": "janedoe",
             "password": "321321"
         }
     ]
@@ -160,7 +160,7 @@ We have two test users:
 
 Let's write a `login` handler:
 
-```sh
+```c
 // src/handlers/handlers.h
 
 #ifndef HANDLERS_H
@@ -173,7 +173,7 @@ void handle_login(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers/handlers.c
 
 #include "handlers.h"
@@ -252,7 +252,7 @@ void handle_login(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -280,7 +280,7 @@ int main()
 
 Let's send a request to `http://localhost:4000/login` with that body:
 
-```
+```json
 {
     "username": "janedoe",
     "password": "321321"
@@ -293,7 +293,7 @@ If login is successful, we'll see a **"Login successful!"** response and a heade
 
 We also write a logout handler to use after login. Let's add these parts:
 
-```sh
+```c
 // src/handlers/handlers.c
 
 // Add this handler:
@@ -318,7 +318,7 @@ void handle_logout(Req *req, Res *res)
 
 Declare the logout handler too:
 
-```sh
+```c
 // src/handlers/handlers.h
 
 #ifndef HANDLERS_H
@@ -334,7 +334,7 @@ void handle_logout(Req *req, Res *res); // We added now
 
 And also add to entry point:
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -381,7 +381,7 @@ You have to login first
 
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
-```sh
+```c
 // src/handlers/handlers.h
 
 #ifndef HANDLERS_H
@@ -396,7 +396,7 @@ void handle_session_data(Req *req, Res *res); // We added now
 #endif
 ```
 
-```sh
+```c
 // src/handlers/handlers.c
 
 #include "handlers.h"
@@ -440,7 +440,7 @@ void handle_session_data(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -472,7 +472,7 @@ First, we need to login. Rebuild the program and send a `POST` request to the `h
 After that, send another request to the `http://localhost:4000/session` address to see the session data.
 The output will this:
 
-```
+```json
 {
     "name": "John",
     "username": "johndoe",
@@ -484,7 +484,7 @@ Here are the session data, which we have added while the user is logging in.
 
 If you don't want the whole session data, but just one or two, you can do it as well:
 
-```sh
+```c
 // src/handlers/handlers.c
 
 void handle_session_data(Req *req, Res *res)
@@ -539,7 +539,7 @@ void handle_session_data(Req *req, Res *res)
 
 The output will be:
 
-```
+```json
 {
     "name": "John"
 }
@@ -549,13 +549,13 @@ The output will be:
 
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
-```sh
+```c
 // src/handlers/handlers.h
 
 void handle_protected(Req *req, Res *res);
 ```
 
-```sh
+```c
 // src/handlers/handlers.c
 
 void handle_protected(Req *req, Res *res)
@@ -575,7 +575,7 @@ void handle_protected(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 get("/protected", handle_protected);
@@ -597,7 +597,7 @@ Well, some routes should be for the user's himself only such as Edit Profile pag
 For this example, we'll define a route with `slug` and we'll check first if the username in session data and slug is the same.
 If they are, then we'll run a sql query and send a response.
 
-```sh
+```c
 // src/main.c
 
 int main()
@@ -610,13 +610,13 @@ int main()
 }
 ```
 
-```sh
+```c
 // src/handlers/handlers.h
 
 void edit_profile(Req *req, Res *res);
 ```
 
-```sh
+```c
 // src/handlers/handlers.c
 
 void edit_profile(Req *req, Res *res)
@@ -641,7 +641,7 @@ void edit_profile(Req *req, Res *res)
     cJSON *username = cJSON_GetObjectItem(session_data, "username"); // Get the "username" data from session
 
     /* Compare slug param vs session username */
-    const char *slug = get_req(&req->params, "slug");
+    const char *slug = get_params("slug");
     if (!slug || strcmp(slug, username->valuestring) != 0)
     {
         cJSON_Delete(session_data);
@@ -697,23 +697,19 @@ Let's send 3 different request to the `http://localhost:4000/edit/johndoe` route
 
 If we try without any authorization, we'll get that response:
 
-```sh
-{
+```
     Authentication required
-}
 ```
 
 If we try to reach that page as someone who is not johndoe, we'll receive:
 
-```sh
-{
+```
     Unauthorized: Slug does not match session username
-}
 ```
 
 When we logged in as johndoe and send a request again, here is what we will get:
 
-```sh
+```json
 {
     "id": 1,
     "name": "John"

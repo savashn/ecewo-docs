@@ -33,7 +33,7 @@ In Ecewo, asynchronous operations work as chained from the bottom up. So our ent
 
 If we imagine that we have 2 async operations in the chain, our `async` process will work as follows:
 
-```sh
+```c
 // src/async_handler.c
 
 static void second_done(void *context, int success, char *error){...}   // 2. done, exit
@@ -69,7 +69,7 @@ With PowerShell:
 
 ### Step 1: Create A Context Structure
 
-```sh
+```c
 // src/async_handler.c
 
 #include "ecewo.h"  // For our handler, which is the entry point
@@ -93,14 +93,14 @@ typedef struct
 
 An entry point is our usual handler.
 
-```sh
+```c
 // src/async_handler.c
 
 // HTTP handler
 void calculate(Req *req, Res *res)
 {
     // Get the number from request params
-    const char *num_str = get_req(&req->params, "num");
+    const char *num_str = get_params("num");
 
     // Converte it to a number
     long num = num_str ? strtol(num_str, NULL, 10) : 0;
@@ -139,7 +139,7 @@ The `async(ctx, add)` takes two parameters: First one is the context, second one
 
 ### Step 3: Write The First Operation
 
-```sh
+```c
 // src/async_handler.c
 
 // _done function of the first operation:
@@ -188,7 +188,7 @@ static void add_work(async_t *task, void *context)
 
 At the previously step, `add_done()` function called an operation named `multiply` by `await(context, multiply)` if the process is success. So let's write the `multiply` function.
 
-```sh
+```c
 // src/async_handler.c
 
 // _done function of the second operation:
@@ -248,7 +248,7 @@ static void multiply_work(async_t *task, void *context)
 
 In the end, the `async_handler.c` file should look like this:
 
-```sh
+```c
 // src/async_handler.c
 
 #include "async.h"
@@ -359,7 +359,7 @@ static void add_work(async_t *task, void *context)
 void calculate(Req *req, Res *res)
 {
     // Get the number from request params
-    const char *num_str = get_req(&req->params, "num");
+    const char *num_str = get_params("num");
 
     // Convert it to a number
     long num = num_str ? strtol(num_str, NULL, 10) : 0;
@@ -401,7 +401,7 @@ void calculate(Req *req, Res *res)
 
 Let's run and test our async chain.
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -414,7 +414,7 @@ void calculate(Req *req, Res *res); // Our entry point
 #endif
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"

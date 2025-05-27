@@ -26,9 +26,10 @@ export default defineConfig({
 						{ label: 'Using A Database', slug: 'docs/using-a-database' },
 						{ label: 'Auth', slug: 'docs/auth' },
 						{ label: 'Middleware', slug: 'docs/middleware' },
-						{ label: 'Environment Variables', slug: 'docs/environment-variables' },
 						{ label: 'Async Operations', slug: 'docs/async-operations' },
-						{ label: 'Using CBOR', slug: 'docs/using-cbor' }
+						{ label: 'Using CBOR', slug: 'docs/using-cbor' },
+						{ label: 'Environment Variables', slug: 'docs/environment-variables' },
+						{ label: 'CORS Configuration', slug: 'docs/cors' }
 					]
 				},
 				{

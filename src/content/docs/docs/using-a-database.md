@@ -37,7 +37,7 @@ your-project/
 
 ## Connecting To Database
 
-```sh
+```c
 // src/db/db.c
 
 #include <stdio.h>
@@ -90,7 +90,7 @@ int init_db()
 }
 ```
 
-```sh
+```c
 // src/db/db.h
 
 #ifndef DB_H
@@ -105,7 +105,7 @@ int init_db();
 #endif
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -128,7 +128,7 @@ Now we can rebuild our program. If everything went OK, a `db.sql` file containin
 
 We already created a 'Users' table in the previously chapter. Now we will add a user to it. Let's begin with writing our POST handler:
 
-```sh
+```c
 // src/handlers/handlers.h
 
 #ifndef HANDLERS_H
@@ -141,7 +141,7 @@ void add_user(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers/handlers.c
 
 #include "handlers.h"
@@ -221,7 +221,7 @@ void add_user(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -245,7 +245,7 @@ We can use `POSTMAN` or something else to send requests.
 
 We'll send a request, which has a body like:
 
-```
+```json
 {
     "name": "John Doe",
     "username": "johndoe",
@@ -257,7 +257,7 @@ If everything is correct, the output will be `User created!`.
 
 Let's send one more request for the next example:
 
-```
+```json
 {
     "name": "Jane Doe",
     "username": "janedoe",
@@ -271,7 +271,7 @@ Now we'll write a handler function that gives us these two users' information.
 But let's say that "name" and "surname" fields are not required for us, so we need "id" and "username" fields only.
 To do this:
 
-```sh
+```c
 // src/handlers/handlers.h
 
 #ifndef HANDLERS_H
@@ -284,7 +284,7 @@ void get_all_users(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers/handlers.c
 
 #include "handlers.h"
@@ -345,7 +345,7 @@ We could have used a `for` loop too, but it would be more complicated and less r
 
 If we had written it with a `for` loop, it would look like this:
 
-```sh
+```c
 for (rc = sqlite3_step(stmt); rc == SQLITE_ROW; rc = sqlite3_step(stmt))
 {
     // ...
@@ -354,7 +354,7 @@ for (rc = sqlite3_step(stmt); rc == SQLITE_ROW; rc = sqlite3_step(stmt))
 
 ... instead of this:
 
-```sh
+```c
 while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
 {
     // ...
@@ -363,7 +363,7 @@ while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
 
 You can use `for` loop if you want, but `while` loop is more readable for this job as you can see.
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -385,7 +385,7 @@ int main()
 
 Now if we send a request, we'll receive this output:
 
-```sh
+```json
 [
   {
     "id": 1,

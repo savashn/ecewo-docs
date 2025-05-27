@@ -23,7 +23,7 @@ For Windows:
 
 We did this with JSON in [this example](/docs/using-json#creating-json). Now let's do it again with CBOR this time.
 
-```
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -36,7 +36,7 @@ void hello_world_cbor(Req *req, Res *res);
 #endif
 ```
 
-```
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -66,7 +66,7 @@ void hello_world_cbor(Req *req, Res *res)
 }
 ```
 
-```
+```c
 // src/main.c
 
 #include "server.h"
@@ -88,7 +88,7 @@ int main()
 
 You can see [the exact example](/docs/using-json/#parsing-json) with JSON.
 
-```
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -102,7 +102,7 @@ void handle_user_cbor(Req *req, Res *res); // Add the decoding CBOR handler
 #endif
 ```
 
-```
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -201,7 +201,7 @@ cleanup:
 }
 ```
 
-```
+```c
 // src/main.c
 
 #include "server.h"
@@ -251,7 +251,7 @@ Now we need to read the inside of it. Cut that generated binary file, create a n
 
 Run `pip install cbor2` and create a Python file:
 
-```
+```py
 // testing/hello_world.py
 
 import cbor2
@@ -272,7 +272,7 @@ Now if we run `python hello_world.py` command in the terminal, we'll see this re
 
 This time we'll create a `.cbor` binary using Python and send it to our server via POSTMAN. Let's create a new `.py` file:
 
-```
+```py
 // testing/handle_user.py
 
 import cbor2

@@ -37,7 +37,7 @@ PORT=4000
 
 Let's parse it in `main.c`:
 
-```sh
+```c
 //src/main.c
 
 #include <stdio.h>
@@ -59,7 +59,7 @@ We'll see the `PORT` in the console when building the program. However, `getenv`
 
 For example, `ecewo()` takes an `unsigned short` type variable. So, if we want to use the `PORT` from the `.env` file, we can do it like this:
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"

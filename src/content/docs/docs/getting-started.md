@@ -46,7 +46,7 @@ For Windows:
 
 This command is going to create a basic structure in `src/` directory. Let's look into it.
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -61,7 +61,7 @@ void hello_world(Req *req, Res *res);
 
 This is defining handler. We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, and many others— used for writing handlers and routers.
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -82,7 +82,7 @@ When we are done with the handler, we need to send a response to the client usin
 
 Basically, they take 2 parameters: a status code and a response body — except for `cbor()`, which takes three: a status code, a response body, and the length of the response body.
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"

@@ -21,7 +21,7 @@ If you prefer to use PowerShell:
 
 Let's write our `hello world` example again, but this time it will send a JSON object instead of a plain text.
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -34,7 +34,7 @@ void hello_world(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"   // To handle the request and send a response
@@ -60,7 +60,7 @@ void hello_world(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
@@ -86,7 +86,7 @@ Now we can recompile and send a request to `http://localhost:4000/` again. We'll
 
 This time, let's take a JSON and print it to console.
 
-```sh
+```c
 // src/handlers.h
 
 #ifndef HANDLERS_H
@@ -99,7 +99,7 @@ void handle_user(Req *req, Res *res);
 #endif
 ```
 
-```sh
+```c
 // src/handlers.c
 
 #include "handlers.h"
@@ -143,7 +143,7 @@ void handle_user(Req *req, Res *res)
 }
 ```
 
-```sh
+```c
 // src/main.c
 
 #include "server.h"
