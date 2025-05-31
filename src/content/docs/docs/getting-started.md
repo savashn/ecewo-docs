@@ -7,42 +7,43 @@ description: Documentation of Ecewo — A modern microframework for web developm
 
 - CMake version 3.10 or higher
 - A C compiler (GCC, Clang, or MSVC)
-- MINGW64 if you are using Windows
+- MSYS2 and Git Bash if you are using Windows
 
 ## Installation
 
-You need to clone the repository to install Ecewo. Follow these steps to clone:
+You need to install Ecewo CLI first. Run this command to install:
+
+```bash
+curl -o installer.sh "https://raw.githubusercontent.com/savashn/ecewo/main/installer.sh" && chmod +x installer.sh && ./installer.sh
+```
+
+This command installs the Ecewo CLI to your user path. To install it to the system path for all users, run the following command with administrator privileges:
+
+```bash
+curl -o installer.sh "https://raw.githubusercontent.com/savashn/ecewo/main/installer.sh" && chmod +x installer.sh && ./installer.sh --admin
+```
+
+> Run `make help` if you want to see the options.
+
+All the CLI commands are here:
+
+- `ecewo run`       — Build and run
+- `ecewo rebuild`   — Build from scratch
+- `ecewo update`    — Update Ecewo
+- `ecewo migrate`   — Migrate the CMakeLists.txt file
+- `ecewo install`   — Install packages
+
+To see all the CLI commands, run:
 
 ```
-git clone https://github.com/savashn/ecewo.git
-cd ecewo
+ecewo help
 ```
-
-Ecewo includes some scripts to make configuration easier. You can view them by running `./ecewo.sh`, or, if you prefer PowerShell, `./ecewo.bat`. Here are the available configuration commands:
-
-- `--run`       — Build and run
-- `--rebuild`   — Build from scratch
-- `--update`    — Update Ecewo
-- `--migrate`   — Migrate the CMakeLists.txt file
-- `--install`   — Install packages
 
 Let's create an example `hello world` app by running the following command:
 
-For Linux/macOS:
 ```
-chmod +x create.sh
-./create.sh
+ecewo create
 ```
-
-For Windows:
-
-```
-./create.bat
-```
-
->**NOTE:**
->
-> You need to replace `--` with `/` for PowerShell.
 
 This command is going to create a basic structure in `src/` directory. Let's look into it.
 
@@ -106,9 +107,9 @@ We can create our routers with `get()`, `post()`, `put()` and `del()` methods. T
 >
 > We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
 
->**NOTE:**
+> **NOTE:**
 >
-> We have to use double quots `""` to define the route path every time. If we accidentally write single quots `''`, we'll get an error.
+>  We have to use double quots `""` to define the route path every time. If we accidentally write single quots `''`, we'll get an error.
 
 ```
 get("/", hello_world); // CORRECT
@@ -117,16 +118,8 @@ get('/', hello_world); // INCORRECT
 
 Now we can run the following command in the terminal to build and run our server.
 
-For Linux/MacOS:
 ```
-chmod +x ecewo.sh
-./ecewo.sh --run
-```
-
-For Windows:
-
-```
-./ecewo.bat /run
+ecewo run
 ```
 
 When we ran the suitable command; we’ll see following informations if our server is ready:
@@ -138,6 +131,6 @@ Server is running at: http://localhost:4000
 
 Now if we go to `http://localhost:4000/` we'll see a basic `hello world!` text message.
 
->**NOTE:**
+> **NOTE:**
 >
->When we create a new `.c` file, we need to run `./ecewo.sh --migrate` command before running `./ecewo.sh --run` (for PowerShell, must be `./ecewo.bat /migrate` and `./ecewo.bat /run`). It will automatically configure `CMakeLists.txt` file for us.
+> When we create a new `.c` file, we need to run `ecewo migrate` command before running `ecewo run`. It will automatically configure `CMakeLists.txt` file for us.

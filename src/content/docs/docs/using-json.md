@@ -8,13 +8,7 @@ Ecewo supports a powerful JSON library called [cJSON](https://github.com/akheron
 We can install it easily by running the following command:
 
 ```
-./ecewo.sh --install --cjson
-```
-
-If you prefer to use PowerShell:
-
-```
-./ecewo.bat /install --cjson
+ecewo install cjson
 ```
 
 ## Creating JSON

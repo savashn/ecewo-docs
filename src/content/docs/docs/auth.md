@@ -11,14 +11,8 @@ Ecewo offers a `cookie` plugin to get or set a cookie:
 
 ### Install Cookie Plugin
 
-For Linux/MacOS:
 ```
-./ecewo.sh --install --cookie
-```
-
-For Windows:
-```
-./ecewo.bat /install --cookie
+ecewo install cookie
 ```
 
 ### Usage
@@ -127,12 +121,7 @@ Let's make an authentication example and see how it works.
 Run this command in the terminal:
 
 ```
-./ecewo.sh --install --cookie --cjson --session
-```
-
-For PowerShell:
-```
-./ecewo.bat /install --cookie --cjson --session
+ecewo install cookie cjson session
 ```
 
 Since `session` depends on `cookie` and `cjson` plugins, we also need to install them if we didn't yet.

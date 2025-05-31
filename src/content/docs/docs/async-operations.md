@@ -55,16 +55,8 @@ The example will be a very basic calculator that receives a number from `req->pa
 
 ### Step 0: Install Async Plugin
 
-With Shell:
-
 ```
-./ecewo.sh --install --async
-```
-
-With PowerShell:
-
-```
-./ecewo.bat /install --async
+ecewo install async
 ```
 
 ### Step 1: Create A Context Structure
@@ -433,15 +425,8 @@ int main()
 Now let's build by running these commands:
 
 ```
-./ecewo.sh --migrate
-./ecewo.sh --run
-```
-
-For PowerShell:
-
-```
-./ecewo.bat /migrate
-./ecewo.bat /run
+ecewo migrate
+ecewo run
 ```
 
 And go to `http://localhost:4000/calculate/100`. We will receive that response:

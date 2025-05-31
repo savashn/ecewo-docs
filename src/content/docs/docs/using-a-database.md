@@ -10,13 +10,7 @@ We need a database if we are building a backend service. This documentation show
 Run the following command:
 
 ```
-./ecewo.sh --install --sqlite
-```
-
-If you use PowerShell:
-
-```
-./ecewo.bat /install --sqlite
+ecewo install sqlite
 ```
 
 ## Example Folder Structure

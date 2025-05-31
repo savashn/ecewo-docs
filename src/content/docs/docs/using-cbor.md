@@ -7,16 +7,9 @@ Ecewo supports [TinyCBOR](https://github.com/intel/tinycbor) out of the box. Let
 
 First, let's run these commands:
 
-For Linux/MacOS:
 ```
-./ecewo.sh --install --cbor
-./ecewo.sh --rebuild
-```
-
-For Windows:
-```
-./ecewo.bat /install --cbor
-./ecewo.bat /rebuild
+ecewo install cbor
+ecewo rebuild
 ```
 
 ## Encoding CBOR
@@ -230,14 +223,8 @@ Now ne need to test our CBOR handler. We will use Python for testing, but you ca
 
 Let's run our server and download a `.cbor` binary.
 
-For Linux/MacOs:
 ```
-./ecewo.sh --run
-```
-
-For Windows:
-```
-./ecewo.bat /run
+ecewo run
 ```
 
 Let's send a `curl` request and download the binary:
