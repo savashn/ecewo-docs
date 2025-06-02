@@ -17,7 +17,7 @@ ecewo install sqlite
 
 ```
 your-project/
-├── ecewo/                  # Source codes of ecewo
+├── core/                   # Source codes of ecewo
 └── src/                    # Source code of ours
     ├── main.c              # Main application entry point
     ├── handlers/           # Folder for our handlers

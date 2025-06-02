@@ -14,7 +14,7 @@ ecewo install dotenv
 And create a `.env` file in the root directory of your project. Project structure should be like this:
 
 ```
-├── ecewo/
+├── core/
 ├── .env
 └── src/
     ├── main.c
