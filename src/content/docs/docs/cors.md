@@ -39,7 +39,7 @@ void hello_world(Req *req, Res *res);
 void hello_world(Req *req, Res *res)
 {
     set_header(res, "X-Custom", "value");
-    text(200, "hello world");
+    send_text(200, "hello world");
 }
 ```
 

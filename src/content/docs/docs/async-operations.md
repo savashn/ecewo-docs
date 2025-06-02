@@ -101,7 +101,7 @@ void calculate(Req *req, Res *res)
     ctx_t *ctx = malloc(sizeof(*ctx));
     if (!ctx)
     {
-        text(500, "Memory allocation failed");
+        send_text(500, "Memory allocation failed");
         return;
     }
 
@@ -111,7 +111,7 @@ void calculate(Req *req, Res *res)
 
     if (!ctx->req || !ctx->res)
     {
-        text(500, "Memory allocation failed");
+        send_text(500, "Memory allocation failed");
         free(ctx->req);
         free(ctx->res);
         free(ctx);
@@ -151,7 +151,7 @@ static void add_done(void *context, int success, char *error)
         Res *res = ctx->res;
 
         // Send a response
-        text(500, error);
+        send_text(500, error);
 
         // Free the allocated memories
         free(ctx->req);
@@ -195,7 +195,7 @@ static void multiply_done(void *context, int success, char *error)
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        text(500, error);
+        send_text(500, error);
     }
     else
     {
@@ -204,7 +204,7 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            ctx->input, ctx->final);
 
-        text(200, buf);
+        send_text(200, buf);
     }
 
     // Ensure memory is always freed regardless of success/failure
@@ -268,7 +268,7 @@ static void multiply_done(void *context, int success, char *error)
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        text(500, error);
+        send_text(500, error);
     }
     else
     {
@@ -277,7 +277,7 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            ctx->input, ctx->final);
 
-        text(200, buf);
+        send_text(200, buf);
     }
 
     // Ensure memory is always freed regardless of success/failure
@@ -325,7 +325,7 @@ static void add_done(void *context, int success, char *error)
         Res *res = ctx->res;
 
         // Send a response
-        text(500, error);
+        send_text(500, error);
 
         // Free the allocated memories
         free(ctx->req);
@@ -360,7 +360,7 @@ void calculate(Req *req, Res *res)
     ctx_t *ctx = malloc(sizeof(*ctx));
     if (!ctx)
     {
-        text(500, "Memory allocation failed");
+        send_text(500, "Memory allocation failed");
         return;
     }
 
@@ -370,7 +370,7 @@ void calculate(Req *req, Res *res)
 
     if (!ctx->req || !ctx->res)
     {
-        text(500, "Memory allocation failed");
+        send_text(500, "Memory allocation failed");
         free(ctx->req);
         free(ctx->res);
         free(ctx);

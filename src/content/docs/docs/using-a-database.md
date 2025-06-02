@@ -152,7 +152,7 @@ void add_user(Req *req, Res *res)
     // If there is no body, return a 400 Bad Request response
     if (body == NULL)
     {
-        text(400, "Missing request body");
+        send_text(400, "Missing request body");
         return;
     }
 
@@ -162,7 +162,7 @@ void add_user(Req *req, Res *res)
     // If JSON parsing fails, return a 400 Bad Request response
     if (!json)
     {
-        text(400, "Invalid JSON");
+        send_text(400, "Invalid JSON");
         return;
     }
 
@@ -176,7 +176,7 @@ void add_user(Req *req, Res *res)
 
     {
         cJSON_Delete(json);
-        text(400, "Missing fields");
+        send_text(400, "Missing fields");
         return;
     }
 
@@ -189,7 +189,7 @@ void add_user(Req *req, Res *res)
     if (rc != SQLITE_OK)
     {
         cJSON_Delete(json);
-        text(500, "DB prepare failed");
+        send_text(500, "DB prepare failed");
         return;
     }
 
@@ -206,12 +206,12 @@ void add_user(Req *req, Res *res)
     // If the insert operation fails, return a 500 error
     if (rc != SQLITE_DONE)
     {
-        text(500, "DB insert failed");
+        send_text(500, "DB insert failed");
         return;
     }
 
     // If everything is successful, return a 201 Created response
-    text(201, "User created!");
+    send_text(201, "User created!");
 }
 ```
 
@@ -294,7 +294,7 @@ void get_all_users(Req *req, Res *res)
 
     if (rc != SQLITE_OK)
     {
-        text(500, "DB prepare failed");
+        send_text(500, "DB prepare failed");
         return;
     }
 
@@ -316,7 +316,7 @@ void get_all_users(Req *req, Res *res)
 
     if (rc != SQLITE_DONE)
     {
-        text(500, "DB step failed");
+        send_text(500, "DB step failed");
         sqlite3_finalize(stmt);
         cJSON_Delete(json_array);
         return;
@@ -324,7 +324,7 @@ void get_all_users(Req *req, Res *res)
 
     char *json_string = cJSON_PrintUnformatted(json_array);
 
-    json(200, json_string); // Send the json response
+    send_json(200, json_string); // Send the json response
 
     // Free the allocated memory when we are done:
     cJSON_Delete(json_array);

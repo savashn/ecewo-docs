@@ -31,17 +31,17 @@ void admin_handler(Req *req, Res *res);
 
 void home_handler(Req *req, Res *res)
 {
-    text(200, "Hello world!");
+    send_text(200, "Hello world!");
 }
 
 void users_handler(Req *req, Res *res)
 {
-    text(200, "User lists");
+    send_text(200, "User lists");
 }
 
 void admin_handler(Req *req, Res *res)
 {
-    text(200, "Welcome to admin panel");
+    send_text(200, "Welcome to admin panel");
 }
 ```
 

@@ -30,7 +30,7 @@ void print_body(Req *req, Res *res);
 void print_body(Req *req, Res *res)
 {
     printf("Body: %s\n", req->body);
-    text(200, "Success!");
+    send_text(200, "Success!");
 }
 ```
 
@@ -100,11 +100,11 @@ void send_params(Req *req, Res *res)
 
     if (slug == NULL)
     {
-        text(400, "Missing 'slug' parameter");
+        send_text(400, "Missing 'slug' parameter");
         return;
     }
 
-    text(200, slug);
+    send_text(200, slug);
 }
 ```
 
@@ -169,13 +169,13 @@ void print_more_params(Req *req, Res *res)
 
     if (key == NULL || value == NULL)
     {
-        text(400, "Missing 'key' or 'value' parameter");
+        send_text(400, "Missing 'key' or 'value' parameter");
         return;
     }
 
     printf("Key slug: %s Value slug: %s\n", key, value);
 
-    text(200, "Success!");
+    send_text(200, "Success!");
 }
 ```
 
@@ -230,13 +230,13 @@ void print_query(Req *req, Res *res)
 
     if (name == NULL || surname == NULL)
     {
-        text(400, "Missing required parameter.");
+        send_text(400, "Missing required parameter.");
         return;
     }
 
     printf("Name: %s Surname: %s\n", name, surname);
 
-    text(200, "Success!");
+    send_text(200, "Success!");
 }
 ```
 
@@ -292,11 +292,11 @@ void get_user_agent(Req *req, Res *res)
 
     if (user_agent == NULL)
     {
-        text(400, "Missing required parameter.");
+        send_text(400, "Missing required parameter.");
         return;
     }
 
-    text(200, user_agent);
+    send_text(200, user_agent);
 }
 ```
 
