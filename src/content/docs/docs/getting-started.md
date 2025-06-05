@@ -7,7 +7,8 @@ description: Documentation of Ecewo — A modern microframework for web developm
 
 - CMake version 3.10 or higher
 - A C compiler (GCC, Clang, or MSVC)
-- MSYS2 and Git Bash if you are using Windows
+- Git
+- MSYS2 if you are using Windows
 
 ## Installation
 
@@ -31,7 +32,8 @@ All the CLI commands are here:
 - `ecewo rebuild`   — Build from scratch
 - `ecewo update`    — Update Ecewo
 - `ecewo migrate`   — Migrate the CMakeLists.txt file
-- `ecewo install`   — Install packages
+- `ecewo install`   — Install plugins
+- `ecewo uninstall` — Uninstall plugins
 
 To see all the CLI commands, run:
 

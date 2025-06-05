@@ -40,7 +40,7 @@ void hello_world(Req *req, Res *res)
     cJSON *json = cJSON_CreateObject();
 
     // Add string to the JSON object we just created
-     cJSON_AddStringToObject(json, "hello", "world");
+    cJSON_AddStringToObject(json, "hello", "world");
 
     // Convert the JSON object to a string
     char *json_string = cJSON_PrintUnformatted(json);

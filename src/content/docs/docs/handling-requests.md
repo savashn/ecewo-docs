@@ -3,7 +3,7 @@ title: Handling Requests
 description: Documentation of Ecewo — A modern microframework for web development in C
 ---
 
-We can easily access the request's `body`, `params`, `query`, and `headers` from `req`. We'll see just basic examples in this chapter.
+We can easily access the request's `body`, `params`, `query`, and `headers`. We'll see just basic examples in this chapter.
 
 Let's see how it basically works.
 
