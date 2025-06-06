@@ -1,6 +1,6 @@
 ---
 title: Using CBOR
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 Ecewo supports [TinyCBOR](https://github.com/intel/tinycbor) out of the box. Let's make an `add_user` and `get_all_users` example that we've already done with `cJSON` and `SQLite3`, but we'll implement with `TinyCBOR` this time.

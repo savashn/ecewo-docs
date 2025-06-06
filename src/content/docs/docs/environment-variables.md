@@ -1,6 +1,6 @@
 ---
 title: Environment Variables
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 Ecewo has built-in `env` parser, which is [dotenv-c](https://github.com/Isty001/dotenv-c). Let's see how it works.

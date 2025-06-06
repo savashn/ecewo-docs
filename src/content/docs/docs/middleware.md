@@ -1,6 +1,6 @@
 ---
 title: Middleware
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 Ecewo provides a middleware feauture, which looks like Express.js. Let's see how they work.
@@ -98,7 +98,7 @@ int main()
     get("/admin", use(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
 
     ecewo(4000);  // Start the server on port 4000
-    free_mw();    // Free allocated middleware memory
+    final_middleware();    // Free allocated middleware memory
     final_router();
     return 0;
 }
@@ -152,7 +152,7 @@ int main()
 
     ecewo(3000);
 
-    free_mw();
+    final_middleware();
     final_router();
     return 0;
 }

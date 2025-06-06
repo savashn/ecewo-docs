@@ -33,6 +33,10 @@ export default defineConfig({
 					]
 				},
 				{
+					label: 'API',
+					autogenerate: { directory: 'api' }
+				},
+				{
 					label: 'FAQ',
 					items: [
 						{ label: 'Frequently Asked Questions', slug: 'docs/faq' }

@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 ## Table of Contents

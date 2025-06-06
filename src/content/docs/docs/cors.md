@@ -1,6 +1,6 @@
 ---
 title: CORS
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 Ecewo provides built-in `CORS` configuration feature. It takes these options:

@@ -1,6 +1,6 @@
 ---
 title: Async Operations
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 Since C doesn’t natively support asynchronous operations, this can be one of the more challenging aspects of working with Ecewo. As a result, async behavior may differ a bit from what you're used to.

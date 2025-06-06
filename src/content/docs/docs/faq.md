@@ -1,6 +1,6 @@
 ---
 title: Frequently Asked Questions
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 ## Is *Ecewo* Production Ready?

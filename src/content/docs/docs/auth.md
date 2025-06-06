@@ -1,6 +1,6 @@
 ---
 title: Authentication and Authorization
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 ## Cookies
@@ -62,14 +62,14 @@ void get_all_cookies(Req *req, Res *res);
 
 void set_cookie_handler(Req *req, Res *res)
 {
-    set_cookie(res, "theme", "dark", 3600); // 1 hour
-    set_cookie(res, "name", "john", 7200);  // 2 hour
+    set_cookie("theme", "dark", 3600); // 1 hour
+    set_cookie("name", "john", 7200);  // 2 hour
     send_text(200, "Cookies sent!");
 }
 
 void get_cookie_handler(Req *req, Res *res)
 {
-    char *theme = get_cookie(&req->headers, "theme");
+    char *theme = get_cookie("theme");
 
     if (!theme)
     {
@@ -224,7 +224,7 @@ void handle_login(Req *req, Res *res)
         set_session(sess, "username", username);
         set_session(sess, "theme", "dark");
 
-        set_cookie(res, "session_id", sid, 3600); // 1 hour
+        set_cookie("session_id", sid, 3600); // 1 hour
 
         printf("Session ID: %s\n", sid);
         printf("Session JSON: %s\n", sess->data);
@@ -299,7 +299,7 @@ void handle_logout(Req *req, Res *res)
     else
     {
         free_session(sess);                   // Delete session from the memory
-        set_cookie(res, "session_id", "", 0); // Time out cookie, the browser will delete it
+        set_cookie("session_id", "", 0); // Time out cookie, the browser will delete it
         send_text(302, "Logged out");
     }
 }

@@ -1,6 +1,6 @@
 ---
 title: Handling Requests
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 We can easily access the request's `body`, `params`, `query`, and `headers`. We'll see just basic examples in this chapter.

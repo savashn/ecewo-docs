@@ -1,6 +1,6 @@
 ---
 title: Using JSON
-description: Documentation of Ecewo — A modern microframework for web development in C
+description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
 Ecewo supports a powerful JSON library called [cJSON](https://github.com/akheron/jansson). It’s easy to use and allows us to work with JSON objects effortlessly. For more information, refer to its official documentation.
