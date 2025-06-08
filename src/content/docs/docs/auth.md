@@ -121,31 +121,12 @@ Let's make an authentication example and see how it works.
 Run this command in the terminal:
 
 ```
-ecewo install cookie cjson session
+ecewo install cookie session
 ```
 
-Since `session` depends on `cookie` and `cjson` plugins, we also need to install them if we didn't yet.
+Since `session` depends on `cookie` plugin, we also need to install it if we didn't yet.
 
 ### Login
-
-We have two test users:
-
-```json
-    [
-        {
-            "id": 1,
-            "name": "John",
-            "username": "johndoe",
-            "password": "123123"
-        },
-        {
-            "id": 2,
-            "name": "Jane",
-            "username": "janedoe",
-            "password": "321321"
-        }
-    ]
-```
 
 Let's write a `login` handler:
 
@@ -168,77 +149,63 @@ void handle_login(Req *req, Res *res);
 #include "handlers.h"
 #include "cJSON.h"
 #include "session.h"
-#include "../db/db.h"
 
-extern sqlite3 *db;
+// Example user info (it must be saved in a database)
+const char *STATIC_NAME = "John Doe";
+const char *STATIC_USERNAME = "johndoe";
+const char *STATIC_PASSWORD = "123123";
+const int STATIC_USER_ID = 1;
 
 void handle_login(Req *req, Res *res)
 {
-    const char *body = req->body;
+  const char *body = req->body;
+  if (!body)
+  {
+    send_text(400, "Missing request body");
+    return;
+  }
 
-    if (body == NULL)
-    {
-        send_text(400, "Missing request body");
-        return;
-    }
+  cJSON *json = cJSON_Parse(body);
+  if (!json)
+  {
+    send_text(400, "Invalid JSON");
+    return;
+  }
 
-    cJSON *json = cJSON_Parse(body);
-    if (!json)
-    {
-        send_text(400, "Invalid JSON");
-        return;
-    }
+  const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
+  const char *password = cJSON_GetObjectItem(json, "password")->valuestring;
 
-    const char *username = cJSON_GetObjectItem(json, "username")->valuestring;
-    const char *password = cJSON_GetObjectItem(json, "password")->valuestring;
-
-    if (!username || !password)
-    {
-        cJSON_Delete(json);
-        send_text(400, "Missing fields");
-        return;
-    }
-
-    const char *sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-    if (rc != SQLITE_OK)
-    {
-        cJSON_Delete(json);
-        send_text(500, "DB prepare failed");
-        return;
-    }
-
-    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, password, -1, SQLITE_STATIC);
-
-    rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW)
-    {
-        const char *db_name = (const char *)sqlite3_column_text(stmt, 1);
-
-        char *sid = create_session(3600); // 1 hour
-        Session *sess = find_session(sid);
-
-        set_session(sess, "name", db_name);
-        set_session(sess, "username", username);
-        set_session(sess, "theme", "dark");
-
-        set_cookie("session_id", sid, 3600); // 1 hour
-
-        printf("Session ID: %s\n", sid);
-        printf("Session JSON: %s\n", sess->data);
-
-        send_text(200, "Login successful!");
-    }
-    else
-    {
-        send_text(401, "Invalid username or password");
-    }
-
-    sqlite3_finalize(stmt);
+  if (!username || !password)
+  {
     cJSON_Delete(json);
+    send_text(400, "Missing fields");
+    return;
+  }
+
+  if (strcmp(username, STATIC_USERNAME) == 0 && strcmp(password, STATIC_PASSWORD) == 0)
+  {
+    char *sid = create_session(3600);   // 1 hour
+    Session *sess = find_session(sid);
+
+    set_session(sess, "name", STATIC_NAME);
+    set_session(sess, "username", STATIC_USERNAME);
+    set_session(sess, "theme", "dark");
+
+    set_cookie("session_id", sid, 3600);    // 1 hour
+
+    printf("Session ID: %s\n", sid);
+    printf("Session JSON: %s\n", sess->data);
+
+    send_text(200, "Login successful!");
+  }
+  else
+  {
+    send_text(401, "Invalid username or password");
+  }
+
+  cJSON_Delete(json);
 }
+
 ```
 
 ```c
@@ -246,13 +213,11 @@ void handle_login(Req *req, Res *res)
 
 #include "server.h"
 #include "handlers/handlers.h"
-#include "db/db.h"
 #include "session.h"
 
 int main()
 {
     init_router();
-    init_db();
     init_sessions();
 
     post("/login", handle_login);
@@ -260,7 +225,6 @@ int main()
     ecewo(4000);
 
     final_sessions();
-    sqlite3_close(db);
     final_router();
 
     return 0;
@@ -271,8 +235,8 @@ Let's send a request to `http://localhost:4000/login` with that body:
 
 ```json
 {
-    "username": "janedoe",
-    "password": "321321"
+    "username": "johndoe",
+    "password": "123123"
 }
 ```
 
@@ -298,7 +262,7 @@ void handle_logout(Req *req, Res *res)
     }
     else
     {
-        free_session(sess);                   // Delete session from the memory
+        free_session(sess); // Delete session from the memory
         set_cookie("session_id", "", 0); // Time out cookie, the browser will delete it
         send_text(302, "Logged out");
     }
@@ -328,13 +292,11 @@ And also add to entry point:
 
 #include "server.h"
 #include "handlers/handlers.h"
-#include "db/db.h"
 #include "session.h"
 
 int main()
 {
     init_router();
-    init_db();
     init_sessions();
 
     post("/login", handle_login);
@@ -343,7 +305,6 @@ int main()
     ecewo(4000);
 
     final_sessions();
-    sqlite3_close(db);
     final_router();
 
     return 0;
@@ -434,13 +395,11 @@ void handle_session_data(Req *req, Res *res)
 
 #include "server.h"
 #include "handlers/handlers.h"
-#include "db/db.h"
 #include "session.h"
 
 int main()
 {
     init_router();
-    init_db();
     init_sessions();
 
     get("/session", handle_session_data); // We added it now
@@ -450,7 +409,6 @@ int main()
     ecewo(4000);
 
     final_sessions();
-    sqlite3_close(db);
     final_router();
     
     return 0;
@@ -608,77 +566,56 @@ void edit_profile(Req *req, Res *res);
 ```c
 // src/handlers/handlers.c
 
+// Example user info (it must be saved in a database)
+const char *STATIC_NAME = "John Doe";
+const char *STATIC_USERNAME = "johndoe";
+const char *STATIC_PASSWORD = "123123123";
+const int STATIC_USER_ID = 1;
+
 void edit_profile(Req *req, Res *res)
 {
-    // First, check the user's session
-    Session *sess = get_session(&req->headers);
-    if (!sess)
-    {
-        send_text(401, "Authentication required");
-        return;
-    }
+  Session *sess = get_session(&req->headers);
+  if (!sess)
+  {
+    send_text(401, "Authentication required");
+    return;
+  }
 
-    // Parse session data as JSON with Jansson
-    cJSON *session_data = cJSON_Parse(sess->data);
-    if (!session_data)
-    {
-        send_text(500, "Invalid session data");
-        return;
-    }
+  cJSON *session_data = cJSON_Parse(sess->data);
+  if (!session_data)
+  {
+    send_text(500, "Invalid session data");
+    return;
+  }
 
-    /* Extract \"username\" field from session */
-    cJSON *username = cJSON_GetObjectItem(session_data, "username"); // Get the "username" data from session
+  const cJSON *username = cJSON_GetObjectItem(session_data, "username");
+  const char *slug = get_params("slug");
 
-    /* Compare slug param vs session username */
-    const char *slug = get_params("slug");
-    if (!slug || strcmp(slug, username->valuestring) != 0)
-    {
-        cJSON_Delete(session_data);
-        send_text(403, "Unauthorized: Slug does not match session username");
-        return;
-    }
-
-    /* Prepare and run SQL */
-    const char *sql = "SELECT id, name FROM users WHERE username = ?;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-    if (rc != SQLITE_OK)
-    {
-        const char *errmsg = sqlite3_errmsg(db);
-        char error_msg[256];
-        snprintf(error_msg, sizeof(error_msg),
-                 "{\"error\":\"DB error: %s\"}", errmsg);
-        cJSON_Delete(session_data);
-        send_json(500, error_msg);
-        return;
-    }
-    sqlite3_bind_text(stmt, 1, slug, -1, SQLITE_STATIC);
-
-    rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW)
-    {
-        int id = sqlite3_column_int(stmt, 0);
-        const char *name = (const char *)sqlite3_column_text(stmt, 1);
-
-        /* Build JSON response with Jansson */
-        cJSON *user_json = cJSON_CreateObject();
-        cJSON_AddNumberToObject(user_json, "id", id);
-        cJSON_AddStringToObject(user_json, "name", name);
-
-        char *json_string = cJSON_PrintUnformatted(user_json);
-        send_json(200, json_string);
-
-        cJSON_Delete(user_json); // free cJSON memory
-        free(json_string);       // free json_string memory
-    }
-    else
-    {
-        send_text(404, "User not found");
-    }
-
-    /* Cleanup */
-    sqlite3_finalize(stmt);
+  if (!slug || strcmp(slug, username->valuestring) != 0)
+  {
     cJSON_Delete(session_data);
+    send_text(403, "Unauthorized: Slug does not match session username");
+    return;
+  }
+
+  if (strcmp(slug, STATIC_USERNAME) == 0)
+  {
+    cJSON *user_json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(user_json, "id", STATIC_USER_ID);
+    cJSON_AddStringToObject(user_json, "name", STATIC_NAME);
+
+    char *json_string = cJSON_PrintUnformatted(user_json);
+    send_json(200, json_string);
+
+    cJSON_Delete(user_json);
+    free(json_string);
+  }
+  else
+  {
+    send_text(404, "User not found");
+  }
+
+  cJSON_Delete(session_data);
 }
 ```
 
@@ -721,7 +658,7 @@ When we logged in as johndoe and send a request again, here is what we will get:
 
 ## JWT
 
-Ecewo offers (l8w8jwt)(https://github.com/GlitchedPolygons/l8w8jwt) for authentication with JWT.
+We can use [l8w8jwt](https://github.com/GlitchedPolygons/l8w8jwt) for authentication with JWT.
 
 ### Install JWT Plugin
 

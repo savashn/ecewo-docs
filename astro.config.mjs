@@ -9,7 +9,7 @@ export default defineConfig({
 	integrations: [
 		sitemap(),
 		starlight({
-			title: 'ecewo',
+			title: 'Ecewo',
 			logo: {
 				src: './public/ecewo.svg',
 				replacesTitle: true
