@@ -3,23 +3,20 @@ title: Using A Database
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-We need a database if we are building a backend service. This documentation shows how to use SQLite, but you can use any database you prefer.
+We need a database if we are building a backend service. This documentation shows how to use SQLite.
 
-## Install SQLite
-
-Run the following command:
-
-```
-ecewo install sqlite
-```
+Install [SQLite3](https://www.sqlite.org/download.html) and add the `sqlite3.c` and `sqlite3.h` files to our project.
 
 ## Example Folder Structure
 
 ```
 your-project/
-├── core/                   # Source codes of ecewo
+├── CMakeLists.txt          # CMake of our project
 └── src/                    # Source code of ours
     ├── main.c              # Main application entry point
+    ├── vendors/            # Our external libraries
+    │   ├── sqlite3.c       # SQLite3 source file we installed
+    │   └── sqlite3.h       # SQLite3 header file we installed
     ├── handlers/           # Folder for our handlers
     │   ├── handlers.c      # Our handlers
     │   └── handlers.h      # Header file of handlers
@@ -229,7 +226,7 @@ int main()
     post("/user", add_user);
     ecewo(4000);
     sqlite3_close(db);
-    final_router();
+    reset_router();
     return 0;
 }
 ```
@@ -372,7 +369,7 @@ int main()
     get("/users", get_all_users);
     ecewo(4000);
     sqlite3_close(db);
-    final_router();
+    reset_router();
     return 0;
 }
 ```

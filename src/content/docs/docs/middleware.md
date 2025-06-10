@@ -98,8 +98,8 @@ int main()
     get("/admin", use(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
 
     ecewo(4000);  // Start the server on port 4000
-    final_middleware();    // Free allocated middleware memory
-    final_router();
+    reset_middleware();    // Free allocated middleware memory
+    reset_router();
     return 0;
 }
 ```
@@ -152,8 +152,8 @@ int main()
 
     ecewo(3000);
 
-    final_middleware();
-    final_router();
+    reset_middleware();
+    reset_router();
     return 0;
 }
 ```

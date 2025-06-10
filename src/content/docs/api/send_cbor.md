@@ -3,7 +3,7 @@ title: send_cbor()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`send_cbor()` is a macro for sending `application/cbor` responses easily. It runs [reply()](https://ecewo.vercel.app/api/reply) function under the hood.
+`send_cbor()` is a macro for sending `application/cbor` responses easily. It runs [reply()](/api/reply) function under the hood.
 
 You need to pass these parameters:
 - Status code
@@ -23,4 +23,4 @@ void hello_world(Req *req, Res *res)
 }
 ```
 
-See [Using CBOR](https://ecewo.vercel.app/docs/using-cbor/) chapter.
+See [Using CBOR](/examples/using-cbor/) chapter.

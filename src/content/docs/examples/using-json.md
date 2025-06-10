@@ -3,13 +3,7 @@ title: Using JSON
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-Ecewo supports a powerful JSON library called [cJSON](https://github.com/akheron/jansson). It’s easy to use and allows us to work with JSON objects effortlessly. For more information, refer to its official documentation.
-
-We can install it easily by running the following command:
-
-```
-ecewo install cjson
-```
+We'll use [cJSON](https://github.com/DaveGamble/cJSON) to work with JSON objects in this example, but you can also use [jansson](https://github.com/akheron/jansson) if you prefer. For more information, refer to its official documentation.
 
 ## Creating JSON
 
@@ -65,7 +59,7 @@ int main()
     init_router();
     get("/", hello_world);
     ecewo(4000);
-    final_router();
+    reset_router();
     return 0;
 }
 ```
@@ -148,7 +142,7 @@ int main()
     init_router();
     post("/user", handle_user);
     ecewo(4000);
-    final_router();
+    reset_router();
     return 0;
 }
 ```

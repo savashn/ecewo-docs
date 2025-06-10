@@ -8,7 +8,7 @@ hero:
     file: ../../../public/favicon.svg
   actions:
     - text: Getting Started
-      link: /docs/introduction
+      link: /docs/getting-started
       icon: right-arrow
     - text: Source Code
       link: https://github.com/savashn/ecewo
@@ -19,32 +19,24 @@ hero:
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid stagger>
-  <Card title="Everything Is A Plugin" icon="puzzle">
-    Ecewo provides a minimal core by design. Everything else is a plugin, so you only install and use what you need.
-  </Card>
-
 	<Card title="Async Support" icon="seti:c">
 		Ecewo is built on [libuv](https://github.com/libuv/libuv), a native C library designed for non-blocking asynchronous I/O operations and originally developed for Node.js.
 	</Card>
 
   <Card title="Simple As Node.js" icon="node">
-    Inspired by the simplicity of Express.js and plugin architecture of Fastify.
+    Ecewo is inspired by the simplicity of Express.js. So it's really simple, but in a C kind of way.
 	</Card>
 
-	<Card title="Built-in JSON and CBOR Support" icon="seti:json">
-    Ecewo optionally includes [cJSON](https://github.com/DaveGamble/cJSON) for working with JSON and [TinyCBOR](https://github.com/intel/tinycbor) for working with CBOR — offered as plugins of course!
+	<Card title="JSON and CBOR Support" icon="seti:json">
+    Both text-based responses such as JSON and binary-based responses such as CBOR are supported.
 	</Card>
 
   <Card title="Middleware Structure" icon="puzzle">
-		Offered Express.js-style route-specific and global middlewares.
-	</Card>
-
-  <Card title="Env Configuration" icon="setting">
-		Ecewo optionally offers [dotenv-c](https://github.com/Isty001/dotenv-c), a built-in `.env` file parser for C.
+		Offered built-in route-specific and global middlewares.
 	</Card>
 
   <Card title="Authentication Mechanism" icon="seti:lock">
-		You can easily do authentication and authorization using the built-in cookie and session management plugin, or [l8w8jwt](https://github.com/GlitchedPolygons/l8w8jwt) library.
+		You can easily do authentication and authorization using the built-in cookie and session management plugin.
 	</Card>
 
 	<Card title="Read The Docs" icon="open-book">
@@ -69,6 +61,6 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
   <br /><br />
 
-  <p style={{fontSize: '2rem'}}>v0.25</p>
-  <div>Copyright 2025 &copy; <a href="https://github.com/savashn">Savas Sahin</a>. Licensed under <a href="https://github.com/savashn/ecewo/blob/main/LICENSE">MIT</a>.</div>
+  <p style={{fontSize: '2rem'}}>v0.26</p>
+  <div>Copyright 2025 &copy; <a href="https://github.com/savashn/ecewo">Ecewo</a>. Licensed under <a href="https://github.com/savashn/ecewo/blob/main/LICENSE">MIT</a>.</div>
 </div>

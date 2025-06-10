@@ -9,4 +9,4 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 hook(some_middleware);
 ```
 
-It's necessary to call `final_middleware()` at the end of the `int main()` function when a middleware is used.
+It's necessary to call `reset_middleware()` at the end of the `int main()` function when a middleware is used.

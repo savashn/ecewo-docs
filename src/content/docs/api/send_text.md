@@ -3,7 +3,7 @@ title: send_text()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`send_text()` is a macro for sending `text/plain` responses easily. It runs [reply()](https://ecewo.vercel.app/api/reply) function under the hood.
+`send_text()` is a macro for sending `text/plain` responses easily. It runs [reply()](/api/reply) function under the hood.
 
 ```c
 #include "ecewo.h"

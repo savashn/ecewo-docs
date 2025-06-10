@@ -68,8 +68,8 @@ int main()
     get("/", hello_world);
 
     ecewo(4000);
-    final_router();
-    final_cors();   // Free the memory that allocated by CORS
+    reset_router();
+    reset_cors();   // Free the memory that allocated by CORS
     return 0;
 }
 ```

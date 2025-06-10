@@ -3,28 +3,20 @@ title: Environment Variables
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-Ecewo has built-in `env` parser, which is [dotenv-c](https://github.com/Isty001/dotenv-c). Let's see how it works.
-
-First, install `dotenv-c` by running the following command:
+First, we need to add [dotenv-c](https://github.com/savashn/dotenv-c) to our project, and then create a `.env` file in the root directory of our project. Project structure should something be like this:
 
 ```
-ecewo install dotenv
-```
-
-And create a `.env` file in the root directory of your project. Project structure should be like this:
-
-```
-├── core/
+your-project/
+├── CMakeLists.txt
 ├── .env
 └── src/
-    ├── main.c
-    └── CMakeLists.txt
+    └── main.c
 ```
 
 We define a `PORT` in `.env`:
 
 ```
-// src/.env
+// .env
 
 PORT=4000
 ```
@@ -40,7 +32,7 @@ Let's parse it in `main.c`:
 
 int main()
 {
-    env_load(ENV, false);               // Load ".env" file
+    env_load("..", false);              // Load ".env" file
     const char *port = getenv("PORT");  // Get the "PORT"
     printf("PORT: %s\n", port);         // Print the "PORT"
 
@@ -61,7 +53,7 @@ For example, `ecewo()` takes an `unsigned short` type variable. So, if we want t
 
 int main()
 {
-    env_load(ENV, false);
+    env_load("..", false);
 
     const char *port = getenv("PORT");
     const unsigned short PORT = (unsigned short)atoi(port);

@@ -3,106 +3,6 @@ title: Authentication and Authorization
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-## Cookies
-
-Ecewo offers a `cookie` plugin to get or set a cookie:
-- `get_cookie()` to get the `Cookie` header
-- `set_cookie()` to set a `Cookie` header.
-
-### Install Cookie Plugin
-
-```
-ecewo install cookie
-```
-
-### Usage
-
-Let's create three new routes. One for setting a cookie, one for getting the cookie, and one for getting all the cookies:
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers.h"
-
-int main()
-{
-    init_router();
-
-    get("/set-cookie", set_cookie_handler);
-    get("/get-cookie", get_cookie_handler);
-    get("/all-cookies", get_all_cookies);
-
-    ecewo(4000);
-    final_router();
-    return 0;
-}
-```
-
-```c
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void set_cookie_handler(Req *req, Res *res);
-void get_cookie_handler(Req *req, Res *res);
-void get_all_cookies(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
-#include "cookie.h"
-
-void set_cookie_handler(Req *req, Res *res)
-{
-    set_cookie("theme", "dark", 3600); // 1 hour
-    set_cookie("name", "john", 7200);  // 2 hour
-    send_text(200, "Cookies sent!");
-}
-
-void get_cookie_handler(Req *req, Res *res)
-{
-    char *theme = get_cookie("theme");
-
-    if (!theme)
-    {
-        send_text(404, "Cookies not found");
-        return;
-    }
-
-    send_text(200, theme);
-    free(theme);
-}
-
-void get_all_cookies(Req *req, Res *res)
-{
-    const char *cookies = get_headers("Cookie");
-
-    if (!cookies)
-    {
-        send_text(404, "No cookies found");
-        return;
-    }
-
-    send_text(200, cookies);
-}
-```
-
-`get_cookie()` actually runs `get_headers()` under the hood, and it searchs the `Cookie` header only. Remember, you have to free its memory after you use.
-
-When we send a request to `http://localhost:4000/set-cookie` via POSTMAN, we'll receive a `Cookies sent!` response. If we then check the `Cookies` tab, we'll see the two cookies that were sent.
-
-Let's send a response to `http://localhost:4000/all-cookies` to check the cookies that were sent. When we send the request, the response we get should be `name=john; theme=dark`.
-
-If we want to get a specific cookie only, we can use `get_cookie()` like shown in the example. Let's send another request to `http://localhost:4000/get-cookie`, and we'll get the response `dark`.
-
 ## Sessions
 
 Ecewo offers some session management APIs for authentication and authorization:
@@ -116,15 +16,7 @@ With the power of these APIs, we can easily manage the authentication and author
 
 Let's make an authentication example and see how it works.
 
-### Install Session Plugin
-
-Run this command in the terminal:
-
-```
-ecewo install cookie session
-```
-
-Since `session` depends on `cookie` plugin, we also need to install it if we didn't yet.
+First, we need to install the `session.c` and `session.h` files from [Plugins](https://github.com/savashn/ecewo/tree/main/plugins) and add them to our project.
 
 ### Login
 
@@ -224,8 +116,8 @@ int main()
 
     ecewo(4000);
 
-    final_sessions();
-    final_router();
+    reset_sessions();
+    reset_router();
 
     return 0;
 }
@@ -304,8 +196,8 @@ int main()
 
     ecewo(4000);
 
-    final_sessions();
-    final_router();
+    reset_sessions();
+    reset_router();
 
     return 0;
 }
@@ -408,8 +300,8 @@ int main()
 
     ecewo(4000);
 
-    final_sessions();
-    final_router();
+    reset_sessions();
+    reset_router();
     
     return 0;
 }
@@ -660,20 +552,7 @@ When we logged in as johndoe and send a request again, here is what we will get:
 
 We can use [l8w8jwt](https://github.com/GlitchedPolygons/l8w8jwt) for authentication with JWT.
 
-### Install JWT Plugin
-
-Run these commands in the terminal:
-
-```shell
-git init
-ecewo install l8w8jwt
-```
-
-It will add the JWT library as a GitHub submodule, as recommended.
-
-### Using JWT
-
-There are [basic examples](https://github.com/GlitchedPolygons/l8w8jwt?tab=readme-ov-file#examples) in the GitHub page of `l8w8jwt`. We'll do the same examples in Ecewo server:
+There are [basic examples](https://github.com/GlitchedPolygons/l8w8jwt?tab=readme-ov-file#examples) in the GitHub page of `l8w8jwt`. We'll do the same examples in our Ecewo project:
 
 ```c
 // src/handlers.h
@@ -703,7 +582,7 @@ int main()
   get("/encode", encoding_handler);
 
   ecewo(4000);
-  final_router();
+  reset_router();
   return 0;
 }
 ```
@@ -805,21 +684,7 @@ void decoding_handler(Req *req, Res *res)
 }
 ```
 
-### Test JWT
-
-First, we need to migrate our `CMakeLists.txt` before the building:
-
-```
-ecewo migrate
-```
-
-And then, build our server running the following command:
-
-```
-ecewo run
-```
-
-Now we'll send two different requests. First one is `http://localhost:4000/encode`. We'll receive a `Success!` response and there will be a token in the terminal:
+Rebuild the project and send two different requests. First one is `http://localhost:4000/encode`. We'll receive a `Success!` response and there will be a token in the terminal:
 
 ```
 l8w8jwt example HS512 token: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDg4NjEyMjgsImV4cCI6MTc0ODg2MTgyOCwic3ViIjoiR29yZG9uIEZyZWVtYW4iLCJpc3MiOiJCbGFjayBNZXNhIiwiYXVkIjoiQWRtaW5pc3RyYXRvciJ9.nVuPVFtW3DqCI-XQDvBWG_OfvuDH6Tt_MR7f72Dpq8sztkTWs6pO6OJDh_3Eeh5xbVLqbTxiXILPCfo6NkgCwA

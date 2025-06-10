@@ -3,18 +3,13 @@ title: Using CBOR
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-Ecewo supports [TinyCBOR](https://github.com/intel/tinycbor) out of the box. Let's make an `add_user` and `get_all_users` example that we've already done with `cJSON` and `SQLite3`, but we'll implement with `TinyCBOR` this time.
+Ecewo supports CBOR responses out of the box. Let's make an `add_user` and `get_all_users` example that we've already done with `cJSON` and `SQLite3` in [Using A Database](/examples/using-a-database/) chapter, but we'll implement with [TinyCBOR](https://github.com/intel/tinycbor) this time.
 
 First, let's run these commands:
 
-```
-ecewo install cbor
-ecewo rebuild
-```
-
 ## Encoding CBOR
 
-We did this with JSON in [this example](/docs/using-json#creating-json). Now let's do it again with CBOR this time.
+We did this with JSON in [this example](/examples/using-json#creating-json). Now let's do it again with CBOR this time.
 
 ```c
 // src/handlers.h
@@ -72,14 +67,14 @@ int main()
     get("/cbor", hello_world_cbor);
 
     ecewo(4000);
-    final_router();
+    reset_router();
     return 0;
 }
 ```
 
 ## Decoding CBOR
 
-You can see [the exact example](/docs/using-json/#parsing-json) with JSON.
+You can see [the exact example](/examples/using-json/#parsing-json) with JSON.
 
 ```c
 // src/handlers.h
@@ -208,12 +203,10 @@ int main()
     get("/cbor", hello_world_cbor);
 
     ecewo(4000);
-    final_router();
+    reset_router();
     return 0;
 }
 ```
-
-See the [exact example](/docs/using-json#) implemented with cJSON.
 
 ## Test
 

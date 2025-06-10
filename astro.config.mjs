@@ -19,17 +19,22 @@ export default defineConfig({
 				{
 					label: 'Guides',
 					items: [
-						{ label: 'Introduction', slug: 'docs/introduction' },
 						{ label: 'Getting Started', slug: 'docs/getting-started' },
 						{ label: 'Handling Requests', slug: 'docs/handling-requests' },
-						{ label: 'Using JSON', slug: 'docs/using-json' },
-						{ label: 'Using A Database', slug: 'docs/using-a-database' },
-						{ label: 'Auth', slug: 'docs/auth' },
+						{ label: 'Cookie', slug: 'docs/cookie' },
 						{ label: 'Middleware', slug: 'docs/middleware' },
 						{ label: 'Async Operations', slug: 'docs/async-operations' },
-						{ label: 'Using CBOR', slug: 'docs/using-cbor' },
-						{ label: 'Environment Variables', slug: 'docs/environment-variables' },
 						{ label: 'CORS Configuration', slug: 'docs/cors' }
+					]
+				},
+				{
+					label: 'Examples',
+					items: [
+						{ label: 'Using JSON', slug: 'examples/using-json' },
+						{ label: 'Using A Database', slug: 'examples/using-a-database' },
+						{ label: 'Authentication', slug: 'examples/auth' },
+						{ label: 'Environment Variables', slug: 'examples/environment-variables' },
+						{ label: 'Using CBOR', slug: 'examples/using-cbor' }
 					]
 				},
 				{

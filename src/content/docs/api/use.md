@@ -9,4 +9,4 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
     get("/", use(some_middleware), some_handler);
 ```
 
-It's necessary to call `final_middleware()` at the end of the `int main()` function when a middleware is used.
+It's necessary to call `reset_middleware()` at the end of the `int main()` function when a middleware is used.
