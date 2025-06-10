@@ -58,7 +58,7 @@ include(FetchContent)
 # Fetch Ecewo from GitHub
 FetchContent_Declare(
     ecewo
-    GIT_REPOSITORY https://github.com/savashn/ecewo-nightly.git
+    GIT_REPOSITORY https://github.com/savashn/ecewo.git
     GIT_TAG main
 )
 
