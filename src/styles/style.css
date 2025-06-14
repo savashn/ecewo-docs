@@ -1,0 +1,9 @@
+header :is(img[src*="ecewo.svg"]) {
+  width: 17rem;
+}
+
+@media (max-width: 768px) {
+    header :is(img[src*="ecewo.svg"]) {
+        width: 12rem;
+    }
+}
