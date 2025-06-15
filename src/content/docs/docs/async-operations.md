@@ -29,8 +29,6 @@ So, the async logic follows this flow:
 handler() -> _work() -> _done()
 ```
 
-In Ecewo, asynchronous operations work as chained from the bottom up. So our entry point —which is the **handler**— must be at the bottom.
-
 If we imagine that we have 2 async operations in the chain, our `async` process will work as follows:
 
 ```c
@@ -53,13 +51,7 @@ We are going to do a basic calculating example step by step to understand how as
 
 The example will be a very basic calculator that receives a number from `req->params` and does an addition first, and then a multiplication. So we will write a chain that includes 2 async operations.
 
-### Step 0: Install Async Plugin
-
-```
-ecewo install async
-```
-
-### Step 1: Create A Context Structure
+### Step 1: Create A Context Structure And Declare Functions
 
 ```c
 // src/async_handler.c
@@ -68,7 +60,6 @@ ecewo install async
 #include "async.h"  // For asynchronous operations
 
 // Context for chained operations
-
 typedef struct
 {
     Req *req;
@@ -77,6 +68,12 @@ typedef struct
     long intermediate;
     long final;
 } ctx_t;
+
+// Forward declarations of our async chain
+static void add_work(async_t *task, void *context);
+static void add_done(void *context, int success, char *error);
+static void multiply_work(async_t *task, void *context);
+static void multiply_done(void *context, int success, char *error);
 ```
 
 `Req *req` and `Res *res` must be in the struct everytime, we move their memory between the chains. The others are the variables we will use in the async operations.
@@ -87,265 +84,6 @@ An entry point is our usual handler.
 
 ```c
 // src/async_handler.c
-
-// HTTP handler
-void calculate(Req *req, Res *res)
-{
-    // Get the number from request params
-    const char *num_str = get_params("num");
-
-    // Converte it to a number
-    long num = num_str ? strtol(num_str, NULL, 10) : 0;
-
-    // Allocate memory for async
-    ctx_t *ctx = malloc(sizeof(*ctx));
-    if (!ctx)
-    {
-        send_text(500, "Memory allocation failed");
-        return;
-    }
-
-    // Copy Req and Res to heap
-    ctx->req = malloc(sizeof(*ctx->req));
-    ctx->res = malloc(sizeof(*ctx->res));
-
-    if (!ctx->req || !ctx->res)
-    {
-        send_text(500, "Memory allocation failed");
-        free(ctx->req);
-        free(ctx->res);
-        free(ctx);
-        return;
-    }
-
-    ctx->input = num;
-    ctx->intermediate = 0;
-    ctx->final = 0;
-
-    // Start chain: addition
-    async(ctx, add);
-}
-```
-
-The `async(ctx, add)` takes two parameters: First one is the context, second one is the name of `_work` and `_done` functions. So, our first async operation must be called as `add_work` and `add_done`, because we pass them as `async(ctx, add);` in this example.
-
-### Step 3: Write The First Operation
-
-```c
-// src/async_handler.c
-
-// _done function of the first operation:
-static void add_done(void *context, int success, char *error)
-{
-    if (success)
-    {
-        await(context, multiply);
-        // if success, "await" calls the next task named "multiply"
-    }
-    else
-    {
-        // Assign the context
-        ctx_t *ctx = context;
-
-        // Assign ctx->res to a local variable because the text() macro waits for 'res'
-        Res *res = ctx->res;
-
-        // Send a response
-        send_text(500, error);
-
-        // Free the allocated memories
-        free(ctx->req);
-        free(ctx->res);
-        free(ctx);
-    }
-}
-
-// _work function of the first operation:
-static void add_work(async_t *task, void *context)
-{
-    // Assign the context
-    ctx_t *ctx = context;
-
-    // Add 10 to the input
-    ctx->intermediate = ctx->input + 10;
-
-    // Go to the _done function
-    ok(task);
-}
-```
-
-> A `_work` function must be defined after its corresponding `_done` function, since it needs to access or reference it.
-
-### Step 4: Write The Second Operation
-
-At the previously step, `add_done()` function called an operation named `multiply` by `await(context, multiply)` if the process is success. So let's write the `multiply` function.
-
-```c
-// src/async_handler.c
-
-// _done function of the second operation:
-static void multiply_done(void *context, int success, char *error)
-{
-    // Assign the context
-    ctx_t *ctx = context;
-
-    // Assign ctx->res to a local variable because the text() macro waits for 'res'
-    Res *res = ctx->res;
-
-    // If "multiply_work()" function returns an error
-    if (!success)
-    {
-        send_text(500, error);
-    }
-    else
-    {
-        char buf[128];
-        int len = snprintf(buf, sizeof(buf),
-                           "((%ld) + 10) * 5 = %ld",
-                           ctx->input, ctx->final);
-
-        send_text(200, buf);
-    }
-
-    // Ensure memory is always freed regardless of success/failure
-    free(ctx->req);
-    free(ctx->res);
-    free(ctx);
-}
-
-// _work function of the second operation:
-static void multiply_work(async_t *task, void *context)
-{
-    // Assign the context
-    ctx_t *ctx = context;
-
-    // example fail case: intermediate result is too large
-    if (ctx->intermediate > 1000)
-    {
-        // Send an "error" to the "multiply_done()" function
-        fail(task, "Intermediate too large to multiply");
-    }
-    else
-    {
-        // multiply intermediate result by 5
-        ctx->final = ctx->intermediate * 5;
-
-        // Send a "success" to the "multiply_done()" function
-        ok(task);
-    }
-}
-```
-
-### Final View
-
-In the end, the `async_handler.c` file should look like this:
-
-```c
-// src/async_handler.c
-
-#include "async.h"
-#include "ecewo.h"
-
-// Context for chained operations
-typedef struct
-{
-    Req *req;
-    Res *res;
-    long input;
-    long intermediate;
-    long final;
-} ctx_t;
-
-// _done function of the second operation:
-static void multiply_done(void *context, int success, char *error)
-{
-    // Assign the context
-    ctx_t *ctx = context;
-
-    // Assign ctx->res to a local variable because the text() macro waits for 'res'
-    Res *res = ctx->res;
-
-    // If "multiply_work()" function returns an error
-    if (!success)
-    {
-        send_text(500, error);
-    }
-    else
-    {
-        char buf[128];
-        int len = snprintf(buf, sizeof(buf),
-                           "((%ld) + 10) * 5 = %ld",
-                           ctx->input, ctx->final);
-
-        send_text(200, buf);
-    }
-
-    // Ensure memory is always freed regardless of success/failure
-    free(ctx->req);
-    free(ctx->res);
-    free(ctx);
-}
-
-// _work function of the second operation:
-static void multiply_work(async_t *task, void *context)
-{
-    // Assign the context
-    ctx_t *ctx = context;
-
-    // example fail case: intermediate result is too large
-    if (ctx->intermediate > 1000)
-    {
-        // Send an "error" to the "multiply_done()" function
-        fail(task, "Intermediate too large to multiply");
-    }
-    else
-    {
-        // multiply intermediate result by 5
-        ctx->final = ctx->intermediate * 5;
-
-        // Send a "success" to the "multiply_done()" function
-        ok(task);
-    }
-}
-
-// _done function of the first operation:
-static void add_done(void *context, int success, char *error)
-{
-    if (success)
-    {
-        await(context, multiply);
-        // if success, "await" calls the next task named "multiply"
-    }
-    else
-    {
-        // Assign the context
-        ctx_t *ctx = context;
-
-        // Assign ctx->res to a local variable because the text() macro waits for 'res'
-        Res *res = ctx->res;
-
-        // Send a response
-        send_text(500, error);
-
-        // Free the allocated memories
-        free(ctx->req);
-        free(ctx->res);
-        free(ctx);
-    }
-}
-
-// _work function of the first operation:
-static void add_work(async_t *task, void *context)
-{
-    // Assign the context
-    ctx_t *ctx = context;
-
-    // Add 10 to the input
-    ctx->intermediate = ctx->input + 10;
-
-    // Go to the _done function
-    ok(task);
-}
 
 // HTTP handler
 void calculate(Req *req, Res *res)
@@ -371,21 +109,291 @@ void calculate(Req *req, Res *res)
     if (!ctx->req || !ctx->res)
     {
         send_text(500, "Memory allocation failed");
-        free(ctx->req);
-        free(ctx->res);
+        if (ctx->req)
+            free(ctx->req);
+        if (ctx->res)
+            free(ctx->res);
         free(ctx);
         return;
     }
 
     *ctx->req = *req;
     *ctx->res = *res;
-
     ctx->input = num;
     ctx->intermediate = 0;
     ctx->final = 0;
 
-    // Start chain: addition
+    // Start the chain: addition
     async(ctx, add);
+}
+```
+
+The `async(ctx, add)` takes two parameters: First one is the context, second one is the name of `_work` and `_done` functions. So, our first async operation must be called as `add_work` and `add_done`, because we pass them as `async(ctx, add);` in this example.
+
+### Step 3: Write The First Operation
+
+```c
+// src/async_handler.c
+
+// _work function of the first operation:
+static void add_work(async_t *task, void *context)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // Add 10 to the input
+    ctx->intermediate = ctx->input + 10;
+
+    // Go to the _done function
+    ok(task);
+}
+
+// _done function of the first operation:
+static void add_done(void *context, int success, char *error)
+{
+    if (success)
+    {
+        await(context, multiply);
+        // if success, "await" calls the next task named "multiply"
+    }
+    else
+    {
+        // Assign the context
+        ctx_t *ctx = context;
+
+        // Assign ctx->res to a local variable because the text() macro waits for 'res'
+        Res *res = ctx->res;
+
+        // Send a response
+        send_text(500, error);
+
+        // Free the allocated memories
+        free(ctx->req);
+        free(ctx->res);
+        free(ctx);
+    }
+}
+```
+
+> A `_work` function must be defined after its corresponding `_done` function, since it needs to access or reference it.
+
+### Step 4: Write The Second Operation
+
+At the previously step, `add_done()` function called an operation named `multiply` by `await(context, multiply)` if the process is success. So let's write the `multiply` function.
+
+```c
+// src/async_handler.c
+
+// _work function of the second operation:
+static void multiply_work(async_t *task, void *context)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // example fail case: intermediate result is too large
+    if (ctx->intermediate > 1000)
+    {
+        // Send an "error" to the "multiply_done()" function
+        fail(task, "Intermediate too large to multiply");
+    }
+    else
+    {
+        // multiply intermediate result by 5
+        ctx->final = ctx->intermediate * 5;
+
+        // Send a "success" to the "multiply_done()" function
+        ok(task);
+    }
+}
+
+// _done function of the second operation:
+static void multiply_done(void *context, int success, char *error)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // Assign ctx->res to a local variable because the text() macro waits for 'res'
+    Res *res = ctx->res;
+
+    // If "multiply_work()" function returns an error
+    if (!success)
+    {
+        send_text(500, error);
+    }
+    else
+    {
+        char buf[128];
+        int len = snprintf(buf, sizeof(buf),
+                           "((%ld) + 10) * 5 = %ld",
+                           ctx->input, ctx->final);
+
+        send_text(200, buf);
+    }
+
+    // Ensure memory is always freed regardless of success/failure
+    free(ctx->req);
+    free(ctx->res);
+    free(ctx);
+}
+```
+
+### Final View
+
+In the end, the `async_handler.c` file should look like this:
+
+```c
+// src/async_handler.c
+
+#include "async.h"
+#include "ecewo.h"
+
+// Context for chained operations
+typedef struct
+{
+    Req *req;
+    Res *res;
+    long input;
+    long intermediate;
+    long final;
+} ctx_t;
+
+// Forward declarations of our async chain
+static void add_work(async_t *task, void *context);
+static void add_done(void *context, int success, char *error);
+static void multiply_work(async_t *task, void *context);
+static void multiply_done(void *context, int success, char *error);
+
+// HTTP handler
+void calculate(Req *req, Res *res)
+{
+    // Get the number from request params
+    const char *num_str = get_params("num");
+
+    // Convert it to a number
+    long num = num_str ? strtol(num_str, NULL, 10) : 0;
+
+    // Allocate memory for async
+    ctx_t *ctx = malloc(sizeof(*ctx));
+    if (!ctx)
+    {
+        send_text(500, "Memory allocation failed");
+        return;
+    }
+
+    // Copy Req and Res to heap
+    ctx->req = malloc(sizeof(*ctx->req));
+    ctx->res = malloc(sizeof(*ctx->res));
+
+    if (!ctx->req || !ctx->res)
+    {
+        send_text(500, "Memory allocation failed");
+        if (ctx->req)
+            free(ctx->req);
+        if (ctx->res)
+            free(ctx->res);
+        free(ctx);
+        return;
+    }
+
+    *ctx->req = *req;
+    *ctx->res = *res;
+    ctx->input = num;
+    ctx->intermediate = 0;
+    ctx->final = 0;
+
+    // Start the chain: addition
+    async(ctx, add);
+}
+
+// _work function of the first operation:
+static void add_work(async_t *task, void *context)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // Add 10 to the input
+    ctx->intermediate = ctx->input + 10;
+
+    // Go to the _done function
+    ok(task);
+}
+
+// _done function of the first operation:
+static void add_done(void *context, int success, char *error)
+{
+    if (success)
+    {
+        await(context, multiply);
+        // if success, "await" calls the next task named "multiply"
+    }
+    else
+    {
+        // Assign the context
+        ctx_t *ctx = context;
+
+        // Assign ctx->res to a local variable because the text() macro waits for 'res'
+        Res *res = ctx->res;
+
+        // Send a response
+        send_text(500, error);
+
+        // Free the allocated memories
+        free(ctx->req);
+        free(ctx->res);
+        free(ctx);
+    }
+}
+
+// _work function of the second operation:
+static void multiply_work(async_t *task, void *context)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // example fail case: intermediate result is too large
+    if (ctx->intermediate > 1000)
+    {
+        // Send an "error" to the "multiply_done()" function
+        fail(task, "Intermediate too large to multiply");
+    }
+    else
+    {
+        // multiply intermediate result by 5
+        ctx->final = ctx->intermediate * 5;
+
+        // Send a "success" to the "multiply_done()" function
+        ok(task);
+    }
+}
+
+// _done function of the second operation:
+static void multiply_done(void *context, int success, char *error)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // Assign ctx->res to a local variable because the text() macro waits for 'res'
+    Res *res = ctx->res;
+
+    // If "multiply_work()" function returns an error
+    if (!success)
+    {
+        send_text(500, error);
+    }
+    else
+    {
+        char buf[128];
+        int len = snprintf(buf, sizeof(buf),
+                           "((%ld) + 10) * 5 = %ld",
+                           ctx->input, ctx->final);
+
+        send_text(200, buf);
+    }
+
+    // Ensure memory is always freed regardless of success/failure
+    free(ctx->req);
+    free(ctx->res);
+    free(ctx);
 }
 ```
 
@@ -424,12 +432,11 @@ int main()
 
 Now let's build by running these commands:
 
-```
-ecewo migrate
-ecewo run
+```shell
+mkdir build && cd build && cmake .. && cmake --build .
 ```
 
-And go to `http://localhost:4000/calculate/100`. We will receive that response:
+Start the server and go to `http://localhost:4000/calculate/100`. We will receive that response:
 
 ```
 ((100) + 10) * 5 = 550
