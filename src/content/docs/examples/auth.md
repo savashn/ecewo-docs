@@ -10,7 +10,10 @@ Ecewo offers some session management APIs for authentication and authorization:
 - `create_session()` to create a session
 - `find_session()` to find a session in memory
 - `get_session()` to get the session from request
-- `free_session()` to delete the session from memory
+- `free_session()` to delete the session only from memory
+- `send_session()` to send the session to the client as cookie
+- `delete_sesion()` to delete the session both from the client and the memory
+- `print_sessions()` to print all the active sessions
 
 With the power of these APIs, we can easily manage the authentication and authorization.
 
@@ -76,14 +79,16 @@ void handle_login(Req *req, Res *res)
 
   if (strcmp(username, STATIC_USERNAME) == 0 && strcmp(password, STATIC_PASSWORD) == 0)
   {
-    char *sid = create_session(3600);   // 1 hour
-    Session *sess = find_session(sid);
+    // Create session on RAM for 1 hour
+    Session *session = create_session(3600);
 
-    set_session(sess, "name", STATIC_NAME);
-    set_session(sess, "username", STATIC_USERNAME);
-    set_session(sess, "theme", "dark");
+    // Set key-value variables to the session
+    set_session(session, "name", STATIC_NAME);
+    set_session(session, "username", STATIC_USERNAME);
+    set_session(session, "theme", "dark");
 
-    set_cookie("session_id", sid, 3600);    // 1 hour
+    // Send the session as cookie for 1 hour
+    send_session(res, session);
 
     printf("Session ID: %s\n", sid);
     printf("Session JSON: %s\n", sess->data);
@@ -146,16 +151,15 @@ We also write a logout handler to use after login. Let's add these parts:
 void handle_logout(Req *req, Res *res)
 {
     // First, check if the user has session
-    Session *sess = get_session(&req->headers);
+    Session *session = get_session(&req->headers);
 
-    if (!sess)
+    if (!session)
     {
         send_text(400, "You have to login first");
     }
     else
     {
-        free_session(sess); // Delete session from the memory
-        set_cookie("session_id", "", 0); // Time out cookie, the browser will delete it
+        delete_session(res, session);
         send_text(302, "Logged out");
     }
 }
@@ -399,10 +403,10 @@ void handle_protected(Req *req, Res *res);
 
 void handle_protected(Req *req, Res *res)
 {
-     // Check if the user has session
+    // Check if the user has session
     Session *sess = get_session(&req->headers);
 
-     // If the user hasn't, return an error with 401 status code
+    // If the user hasn't, return an error with 401 status code
     if (!sess)
     {
         send_text(401, "You must be logged in.");
@@ -544,7 +548,7 @@ When we logged in as johndoe and send a request again, here is what we will get:
 >
 >In these examples, session is stored in memory, but you can store them in the database if you prefer.
 >
->If you store them in the memory, you will use `free_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
+>If you store them in the memory, you will use `free_session()` and `delete_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
 >
 >But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.
 
