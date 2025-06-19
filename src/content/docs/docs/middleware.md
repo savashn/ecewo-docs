@@ -248,6 +248,8 @@ void cleanup_session_ctx(void *data) {
 
 Let's begin to write the middleware, which is going to check if the user has authenticated. If the user has not authenticated, it will break the chain and send a response to the client immediately. Otherwise, it's going to set the context of the session to the `Req` object.
 
+Ecewo offers `get_context()` and `set_context()` to publish data between multiple middlewares and route handler.
+
 ```c
 // src/middlewares.c
 
