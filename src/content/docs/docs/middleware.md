@@ -305,6 +305,7 @@ Let's write a handler that sends different responses according to if the user is
 // src/main.c
 
 #include "server.h"
+#include "ecewo.h"
 #include "middlewares.h"
 
 void dashboard(Req *req, Res *res)
