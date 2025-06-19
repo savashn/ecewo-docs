@@ -3,7 +3,7 @@ title: Environment Variables
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-First, we need to add [dotenv-c](https://github.com/savashn/dotenv-c) to our project, and then create a `.env` file in the root directory of our project. Project structure should something be like this:
+First, we need to add [dotenv-c](https://github.com/Isty001/dotenv-c) to our project, and then create a `.env` file in the root directory of our project. Project structure should something be like this:
 
 ```
 your-project/
