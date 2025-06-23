@@ -6,51 +6,16 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 ## Requirements
 
 - A C compiler (GCC, Clang, or MSVC)
-- CMake version 3.10 or higher
+- CMake version 3.14 or higher
 
-## Installation
+## Quick Start
 
-Add Ecewo into your `CMakeLists.txt`:
-```cmake
-include(FetchContent)
-
-FetchContent_Declare(
-    ecewo
-    GIT_REPOSITORY https://github.com/savashn/ecewo.git
-    GIT_TAG main
-)
-
-FetchContent_MakeAvailable(ecewo)
-```
-
-And link Ecewo:
-```cmake
-target_link_libraries(your_project PRIVATE ecewo)
-```
-
-Build:
-```shell
-mkdir build && cd build
-cmake .. && cmake --build .
-```
-
-## Example "Hello World"
-
-To get started, create a "Hello World" application with this directory structure:
-
-```
-your_project/
-├── CMakeLists.txt
-└── src/ 
-    ├── main.c
-    ├── handlers.c
-    └── handlers.h
-```
+Create a project with Ecewo:
 
 ```cmake
-// CMakeLists.txt
+# CMakeLists.txt
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(your_project VERSION 1.0.0 LANGUAGES C)
 
 include(FetchContent)
@@ -62,47 +27,38 @@ FetchContent_Declare(
     GIT_TAG main
 )
 
+# Make Ecewo available
 FetchContent_MakeAvailable(ecewo)
 
-# Create our executable
+# Create the executable
 add_executable(server
-    src/main.c
-    src/handlers.c
+    main.c
 )
 
 # Link Ecewo
 target_link_libraries(server PRIVATE ecewo)
-
-target_include_directories(server PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
 ```
 
 ```c
-// src/handlers.h
+// main.c
 
-#ifndef HANDLERS_H
-#define HANDLERS_H
+#include "server.h"    // To start the server via ecewo();
+#include "ecewo.h"     // Our main API
 
-#include "ecewo.h"  // Our main API
+void hello_world(Req *req, Res *res) {
+    send_text(200, "Hello, World!");
+}
 
-void hello_world(Req *req, Res *res);
-
-#endif
+int main() {
+    init_router();
+    get("/", hello_world);
+    ecewo(3000);
+    reset_router();
+    return 0;
+}
 ```
 
 This is defining handler. We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, `send` and many others— used for writing handlers and routers.
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
-
-void hello_world(Req *req, Res *res)
-{
-    send_text(200, "Hello World!");
-}
-```
 
 And this is our handler. We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `send_text()` is a macro for sending `text/plain` responses to the client.
 
@@ -114,23 +70,7 @@ When we are done with the handler, we need to send a response to the client usin
 
 Basically, they take 2 parameters: a status code and a response body — except for `send_cbor()`, which takes three: a status code, a response body, and the length of the response body.
 
-```c
-// src/main.c
-
-#include "server.h"   // To start the server
-#include "handlers.h" // Our "hello_world()" handler declaration
-
-int main()
-{
-  init_router();
-  get("/", hello_world);
-  ecewo(4000);
-  reset_router();
-  return 0;
-}
-```
-
-And this is the entry point. The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a `PORT` parameter of type `unsigned short`.
+The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a `PORT` parameter of type `unsigned short`.
 
 We can create our routers with these methods:
 
@@ -157,8 +97,7 @@ get('/', hello_world); // INCORRECT
 Now we can run the following commands in the terminal to build our server:
 
 ```shell
-mkdir build && cd build
-cmake .. && cmake --build .
+mkdir build && cd build && cmake .. && cmake --build .
 ```
 
 Let's run it:
@@ -174,7 +113,7 @@ When we ran the suitable command; we’ll see following informations if our serv
 
 ```
 Ecewo [version]
-Server is running at: http://localhost:4000
+Server is running at: http://localhost:3000
 ```
 
-Now if we go to `http://localhost:4000/` we'll see a basic `hello world!` text message.
+Now if we go to `http://localhost:3000/` we'll see a basic `hello world!` text message.

@@ -67,19 +67,19 @@ int main()
 
     get("/", hello_world);
 
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     reset_cors();   // Free the memory that allocated by CORS
     return 0;
 }
 ```
 
-Now let's send three different requests from different origins to `http://localhost:4000/`.
+Now let's send three different requests from different origins to `http://localhost:3000/`.
 
 Send a request from `http://localhost:3000`, which is allowed origin:
 
 ```
-curl -i -H "Origin: http://localhost:3000" http://localhost:4000/
+curl -i -H "Origin: http://localhost:3000" http://localhost:3000/
 ```
 
 The response will be:
@@ -100,7 +100,7 @@ That means everything is OK, the headers we set in CORS configuration has been s
 Send a request from `http://localhost:3001`, which is not allowed origin:
 
 ```
-curl -i -H "Origin: http://localhost:3001" http://localhost:4000/
+curl -i -H "Origin: http://localhost:3001" http://localhost:3000/
 ```
 
 The response will be:
@@ -117,7 +117,7 @@ There are no `CORS` headers, that means request is not allowed. Response status 
 Send a preflight request from `http://localhost:3001` origin, which is not allowed:
 
 ```
-curl -i -X OPTIONS -H "Origin: http://localhost:3001" -H "Access-Control-Request-Method: GET" http://localhost:4000/
+curl -i -X OPTIONS -H "Origin: http://localhost:3001" -H "Access-Control-Request-Method: GET" http://localhost:3000/
 ```
 
 The response will be:

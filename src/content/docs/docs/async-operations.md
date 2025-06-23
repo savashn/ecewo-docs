@@ -5,28 +5,45 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 Since C doesn’t natively support asynchronous operations, this can be one of the more challenging aspects of working with Ecewo. As a result, async behavior may differ a bit from what you're used to.
 
-However, Ecewo offers an usual solution to this unusual situation for web developing: The `async()` and `await()` macros provided out of the box. These macros are simplify working with [libuv](https://github.com/libuv/libuv), a native C library designed for asynchronous I/O operations.
+## General Purpose Async
 
-## The Async Logic
+Ecewo includes an `async.h` module that provides `task()` and `then()` APIs, similar to `promise().then()` behavior in JavaScript. These are simplify working with [libuv](https://github.com/libuv/libuv), a native C library designed for asynchronous I/O operations.
+
+`async.h` uses a thread pool approach, meaning it creates a new thread each time it runs. Therefore, using it for lightweight tasks may result in thread-switching overhead and unnecessary memory usage.
+
+For this reason, it is recommended to use `async.h` only for heavy operations — such as file based operations or external API calls.
+
+For database queries, Ecewo supports `libpq` — an asynchronous library for PostgreSQL — out of the box. If you are using PostgreSQL, it is recommended to use `pq.h` instead of `async.h`. See the [Async Postgres Queries](/docs/async-operations/#async-postgres-queries).
+
+If you’re using another database, such as SQLite, you may still use `async.h` for performance-critical queries.
+
+### The Async Logic
 
 Async operations in Ecewo are implemented as an operation chain. A chain includes:
 - One entry point, which is our **handler**,
-- One operation that includes at least two functions: A **_work** and a **_done**,
+- One operation that includes at least two functions: A **task function** and a **completion function**,
 - One **struct** that includes our context.
 
-Each operation is composed of two primary parts: A `_work` function that performs the **task** and a `_done` function that handles its **completion**. These two parts are inseparable and must always be used together. Every async handler requires a `_work` that does the job, and every `_work` requires a `_done` to process its result.
+Each operation is composed of two primary parts: A **task function** that performs the *task* and a **completion function** that handles its *completion*. These two parts are inseparable and must always be used together.
 
-> **NOTE:**
-> Also it's important that the task function has to end with `_work` suffix and the completion function has to end with `_done` suffix. For example, the functions must be named like `something_work()` and `something_done()`.
+Every async handler requires a **task function** that does the job, and every task function requires a **completion function** to process its result.
 
-- The **handler** is the entry point. It receives the `req` and `res` objects and starts the chain by calling only the first `_work` using the `async()` macro.
-- The **_work()** function performs the actual async task. Once it completes, it returns either a success or failure result to the `_done` using `ok()` or `fail()`.
-- The **_done()** function processes the result received from the `_work`. It then either sends a response to the client or triggers the next operation in the chain using the `await()` macro.
+- The **handler** is the entry point. It receives the `*req` and `*res` objects and starts the chain by calling only the first **task function** using `task()`.
+- The **task function** performs the actual async task. Once it completes, it returns either a success or failure result to the **completion function** using `ok()` or `fail()`.
+- The **completion function** processes the result received from the **task function**. It then either sends a response to the client or triggers the next operation in the chain using the `then()` macro.
 
 So, the async logic follows this flow:
 
+For single async operation:
+
 ```
-handler() -> _work() -> _done()
+handler() -> task() -> send response
+```
+
+For multiple async operation:
+
+```
+handler() -> task() -> then() -> then() -> ... -> send response
 ```
 
 If we imagine that we have 2 async operations in the chain, our `async` process will work as follows:
@@ -34,18 +51,22 @@ If we imagine that we have 2 async operations in the chain, our `async` process 
 ```c
 // src/async_handler.c
 
-static void second_done(void *context, int success, char *error){...}   // 2. done, exit
-static void second_work(async_t *task, void *context){...}              // 2. work
-static void first_done(void *context, int success, char *error){...}    // 1. done
-static void first_work(async_t *task, void *context){...}               // 1. work
 void handler(Req *req, Res *res){...}                                   // Entry point
+static void first_work(async_t *task, void *context){...}               // 1. work
+static void first_done(void *context, int success, char *error){...}    // 1. done
+static void second_work(async_t *task, void *context){...}              // 2. work
+static void second_done(void *context, int success, char *error){...}   // 2. done, exit
 ```
 
-If everything goes well, the very last `_done` function will send the latest response to the client. In this schema, it is `second_done()` function.
+The `first_work()` function process the operation, and send the result to the `first_done()` function using `ok()` for success and `fail()` for error.
+
+The `first_done()` function send a response to the client with the result that received from `first_work()`. Or, if the async chain continues, the `first_done()` function calls the `second_work()` function using `then()`.
+
+The `second_done()` function process the next operation just like the first one, and then the `second_done()` function send the latest response to the client.
 
 Let's go through an example to see how the process works.
 
-## Example Usage
+### Example Usage
 
 We are going to do a basic calculating example step by step to understand how async operations work. 
 
@@ -124,18 +145,17 @@ void calculate(Req *req, Res *res)
     ctx->final = 0;
 
     // Start the chain: addition
-    async(ctx, add);
+    task(ctx, add_work, add_done);
 }
 ```
 
-The `async(ctx, add)` takes two parameters: First one is the context, second one is the name of `_work` and `_done` functions. So, our first async operation must be called as `add_work` and `add_done`, because we pass them as `async(ctx, add);` in this example.
+The `task(ctx, add_work, add_done)` takes three parameters: First one is the context, second one is the task function, and the third one is the completion function.
 
 ### Step 3: Write The First Operation
 
 ```c
 // src/async_handler.c
 
-// _work function of the first operation:
 static void add_work(async_t *task, void *context)
 {
     // Assign the context
@@ -148,13 +168,12 @@ static void add_work(async_t *task, void *context)
     ok(task);
 }
 
-// _done function of the first operation:
 static void add_done(void *context, int success, char *error)
 {
     if (success)
     {
-        await(context, multiply);
-        // if success, "await" calls the next task named "multiply"
+        then(context, multiply_work, multiply_done);
+        // if success, "then" calls the next task named "multiply_work" and its completion "multiply_done()"
     }
     else
     {
@@ -175,16 +194,13 @@ static void add_done(void *context, int success, char *error)
 }
 ```
 
-> A `_work` function must be defined after its corresponding `_done` function, since it needs to access or reference it.
-
 ### Step 4: Write The Second Operation
 
-At the previously step, `add_done()` function called an operation named `multiply` by `await(context, multiply)` if the process is success. So let's write the `multiply` function.
+At the previously step, `add_done()` function called the next operation with `then(context, multiply_work, multiply_done)` if the process is success. So let's write the multiplying operation.
 
 ```c
 // src/async_handler.c
 
-// _work function of the second operation:
 static void multiply_work(async_t *task, void *context)
 {
     // Assign the context
@@ -206,7 +222,6 @@ static void multiply_work(async_t *task, void *context)
     }
 }
 
-// _done function of the second operation:
 static void multiply_done(void *context, int success, char *error)
 {
     // Assign the context
@@ -302,10 +317,9 @@ void calculate(Req *req, Res *res)
     ctx->final = 0;
 
     // Start the chain: addition
-    async(ctx, add);
+    task(ctx, add_work, add_done);
 }
 
-// _work function of the first operation:
 static void add_work(async_t *task, void *context)
 {
     // Assign the context
@@ -318,13 +332,12 @@ static void add_work(async_t *task, void *context)
     ok(task);
 }
 
-// _done function of the first operation:
 static void add_done(void *context, int success, char *error)
 {
     if (success)
     {
-        await(context, multiply);
-        // if success, "await" calls the next task named "multiply"
+        then(context, multiply_work, multiply_done);
+        // if success, "then" calls the next task named "multiply"
     }
     else
     {
@@ -344,7 +357,6 @@ static void add_done(void *context, int success, char *error)
     }
 }
 
-// _work function of the second operation:
 static void multiply_work(async_t *task, void *context)
 {
     // Assign the context
@@ -366,7 +378,6 @@ static void multiply_work(async_t *task, void *context)
     }
 }
 
-// _done function of the second operation:
 static void multiply_done(void *context, int success, char *error)
 {
     // Assign the context
@@ -424,7 +435,7 @@ int main()
 {
     init_router();
     get("/calculate/:num", calculate);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
@@ -436,14 +447,239 @@ Now let's build by running these commands:
 mkdir build && cd build && cmake .. && cmake --build .
 ```
 
-Start the server and go to `http://localhost:4000/calculate/100`. We will receive that response:
+Start the server and go to `http://localhost:3000/calculate/100`. We will receive that response:
 
 ```
 ((100) + 10) * 5 = 550
 ```
 
-If go to `http://localhost:4000/calculate/10000` now and we'll receive:
+If go to `http://localhost:3000/calculate/10000` now and we'll receive:
 
 ```
 Intermediate too large to multiply
 ```
+
+## Async Postgres Queries
+
+Ecewo provides `pq.h` for performing asynchronous PostgreSQL queries via [libpq](https://www.postgresql.org/docs/current/libpq.html).
+
+Queue → Execute → Callback → Queue → Auto-continue
+
+### Installation
+
+- You need to [install PostgreSQL](https://www.postgresql.org/download/) first.
+- Copy the `pq.c` and `pq.h` files from [ecewo-plugins](https://github.com/savashn/ecewo-plugins/tree/main/src) and paste them into your existing project.
+- Configure your CMake as follows:
+
+```cmake
+find_package(PostgreSQL REQUIRED)
+
+target_include_directories(server PRIVATE
+    ${PostgreSQL_INCLUDE_DIRS}
+)
+
+target_link_libraries(server PRIVATE
+    ecewo
+    ${PostgreSQL_LIBRARIES}
+)
+```
+
+### Usage
+
+`pq.h` is providing three functions:
+
+- `pq.create()` to create an async operation. It takes 2 parameters: a context and database connection.
+- `pq.queue()` to queue a database query. It takes 5 parameters: the variable that created with `pq.create()`, the SQL query, the count of params, the result callback, and the context.
+- `pq.execute()` to execute the async operation. It takes 1 parameter: the variable that created with `pq.create()`.
+
+Here is an example of synchronous querying: 
+
+```c
+void get_all_users(Req *req, Res *res)
+{
+    const char *sql = "SELECT id, name, username FROM users;";
+
+    PGresult *resPQ = PQexec(db, sql);
+    if (PQresultStatus(resPQ) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "DB select failed: %s", PQerrorMessage(db));
+        PQclear(resPQ);
+        send_text(500, "DB select failed");
+        return;
+    }
+
+    int rows = PQntuples(resPQ);
+    cJSON *json_array = cJSON_CreateArray();
+
+    for (int i = 0; i < rows; i++)
+    {
+        int id = atoi(PQgetvalue(resPQ, i, 0));
+        const char *name = PQgetvalue(resPQ, i, 1);
+        const char *username = PQgetvalue(resPQ, i, 2);
+
+        cJSON *user_json = cJSON_CreateObject();
+        cJSON_AddNumberToObject(user_json, "id", id);
+        cJSON_AddStringToObject(user_json, "name", name);
+        cJSON_AddStringToObject(user_json, "username", username);
+
+        cJSON_AddItemToArray(json_array, user_json);
+    }
+
+    PQclear(resPQ);
+
+    char *json_string = cJSON_PrintUnformatted(json_array);
+    send_json(200, json_string);
+
+    cJSON_Delete(json_array);
+    free(json_string);
+}
+```
+
+This is really short, but the code is blocking. We can make it asynchronous like that:
+
+```c
+#include "handlers.h"
+#include "cJSON.h"
+#include "pq.h"
+
+// Callback structure to hold request/response context
+typedef struct
+{
+    Req *req;
+    Res *res;
+} ctx_t;
+
+static void free_ctx(ctx_t *ctx)
+{
+    if (!ctx)
+        return;
+
+    if (ctx->req)
+        free(ctx->req);
+    if (ctx->res)
+        free(ctx->res);
+
+    free(ctx);
+}
+
+static void users_result_callback(pg_async_t *pg, PGresult *result, void *data);
+
+// Async version of get_all_users
+void get_all_users_async(Req *req, Res *res)
+{
+    const char *sql = "SELECT id, name, username FROM users;";
+
+    // Create context to pass to callback
+    ctx_t *ctx = calloc(1, sizeof(ctx_t));
+    if (!ctx)
+    {
+        send_text(500, "Memory allocation failed");
+        return;
+    }
+
+    ctx->req = malloc(sizeof(*ctx->req));
+    ctx->res = malloc(sizeof(*ctx->res));
+
+    if (!ctx->req || !ctx->res)
+    {
+        send_text(500, "Memory allocation failed");
+        free_ctx(ctx);
+        return;
+    }
+
+    // Copy necessary base fields (such as client_socket) from the original request and response
+    *ctx->req = *req;
+    *ctx->res = *res;
+
+    // Create async PostgreSQL context
+    pg_async_t *pg = pq_create(db, ctx);
+    if (!pg)
+    {
+        send_text(500, "Failed to create async context");
+        free(ctx);
+        return;
+    }
+
+    // Queue the query
+    int result = pq_queue(pg, sql, 0, NULL, users_result_callback, ctx);
+    if (result != 0)
+    {
+        send_text(500, "Failed to queue query");
+        free(ctx);
+        return;
+    }
+
+    // Start execution (this will return immediately)
+    result = pq_execute(pg);
+    if (result != 0)
+    {
+        printf("get_all_users_async: Failed to execute query\n");
+        send_text(500, "Failed to execute query");
+        free(ctx);
+        return;
+    }
+
+    printf("get_all_users_async: Query started asynchronously\n");
+    // Function returns here, callback will be called when query completes
+}
+
+// Callback function that processes the query result
+static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
+{
+    ctx_t *ctx = (ctx_t *)data;
+
+    if (!ctx || !ctx->res)
+    {
+        printf("Invalid context\n");
+        return;
+    }
+
+
+    Res *res = ctx->res;
+
+    // Check result status
+    ExecStatusType status = PQresultStatus(result);
+    if (status != PGRES_TUPLES_OK)
+    {
+        printf("Query failed: %s\n", PQresultErrorMessage(result));
+        send_text(500, "DB select failed");
+        free(ctx);
+        return;
+    }
+
+    int rows = PQntuples(result);
+    cJSON *json_array = cJSON_CreateArray();
+
+    for (int i = 0; i < rows; i++)
+    {
+        int id = atoi(PQgetvalue(result, i, 0));
+        const char *name = PQgetvalue(result, i, 1);
+        const char *username = PQgetvalue(result, i, 2);
+
+        cJSON *user_json = cJSON_CreateObject();
+        cJSON_AddNumberToObject(user_json, "id", id);
+        cJSON_AddStringToObject(user_json, "name", name);
+        cJSON_AddStringToObject(user_json, "username", username);
+
+        cJSON_AddItemToArray(json_array, user_json);
+    }
+
+    char *json_string = cJSON_PrintUnformatted(json_array);
+    send_json(200, json_string);
+
+    // Cleanup
+    cJSON_Delete(json_array);
+    free(json_string);
+    free_ctx(ctx);
+
+    printf("users_result_callback: Response sent successfully\n");
+
+    // If you want to continue the querying,
+    // you shuld basicly write a new `pq_queue()` here
+    // it will queue the new query immediately
+}
+```
+
+> **NOTE**
+>
+> The `pq_create()` and `pq_execute()` functions have to run once. If you wish to continue with more queries, you should basicly write the new queue with `pq_queue()` and it will be ran automatically.

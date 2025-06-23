@@ -5,7 +5,7 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 ## Is *Ecewo* Production Ready?
 
-No, maybe in version 1.0. However, it doesn’t need to be neither battle-tested nor production-ready, because I’m building it as a **hobby project** to improve my programming skills.
+This is a **hobby project** that I'm developing to improve my programming skills. So it might not be production-ready and it doesn't need to be.
 
 ## What Am I Trying To Do?
 

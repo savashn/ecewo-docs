@@ -14,9 +14,6 @@ export default defineConfig({
 				src: './public/ecewo.svg',
 				replacesTitle: true
 			},
-			customCss: [
-				'./src/styles/style.css',
-			],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/savashn/ecewo' }],
 			sidebar: [
 				{

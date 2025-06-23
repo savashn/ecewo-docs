@@ -119,7 +119,7 @@ int main()
 
     post("/login", handle_login);
 
-    ecewo(4000);
+    ecewo(3000);
 
     reset_sessions();
     reset_router();
@@ -128,7 +128,7 @@ int main()
 }
 ```
 
-Let's send a request to `http://localhost:4000/login` with that body:
+Let's send a request to `http://localhost:3000/login` with that body:
 
 ```json
 {
@@ -198,7 +198,7 @@ int main()
     post("/login", handle_login);
     get("/logout", handle_logout); // We added it now
 
-    ecewo(4000);
+    ecewo(3000);
 
     reset_sessions();
     reset_router();
@@ -207,7 +207,7 @@ int main()
 }
 ```
 
-Now let's send a request to `http://localhost:4000/logout` after login. `Cookie` header will be deleted and we'll see that response:
+Now let's send a request to `http://localhost:3000/logout` after login. `Cookie` header will be deleted and we'll see that response:
 
 ```
 Logged out
@@ -302,7 +302,7 @@ int main()
     post("/login", handle_login);
     post("/logout", handle_logout);
 
-    ecewo(4000);
+    ecewo(3000);
 
     reset_sessions();
     reset_router();
@@ -311,8 +311,8 @@ int main()
 }
 ```
 
-First, we need to login. Rebuild the program and send a `POST` request to the `http://localhost:4000/login` and get the session.
-After that, send another request to the `http://localhost:4000/session` address to see the session data.
+First, we need to login. Rebuild the program and send a `POST` request to the `http://localhost:3000/login` and get the session.
+After that, send another request to the `http://localhost:3000/session` address to see the session data.
 The output will this:
 
 ```json
@@ -424,7 +424,7 @@ void handle_protected(Req *req, Res *res)
 get("/protected", handle_protected);
 ```
 
-Let's send a request to `http://localhost:4000/protected`. If we authenticated, we'll see:
+Let's send a request to `http://localhost:3000/protected`. If we authenticated, we'll see:
 
 ```
 Welcome to the protected area!
@@ -515,7 +515,7 @@ void edit_profile(Req *req, Res *res)
 }
 ```
 
-Let's send 3 different request to the `http://localhost:4000/edit/johndoe` route.
+Let's send 3 different request to the `http://localhost:3000/edit/johndoe` route.
 
 If we try without any authorization, we'll get that response:
 
@@ -585,7 +585,7 @@ int main()
   get("/decode", decoding_handler);
   get("/encode", encoding_handler);
 
-  ecewo(4000);
+  ecewo(3000);
   reset_router();
   return 0;
 }
@@ -688,13 +688,13 @@ void decoding_handler(Req *req, Res *res)
 }
 ```
 
-Rebuild the project and send two different requests. First one is `http://localhost:4000/encode`. We'll receive a `Success!` response and there will be a token in the terminal:
+Rebuild the project and send two different requests. First one is `http://localhost:3000/encode`. We'll receive a `Success!` response and there will be a token in the terminal:
 
 ```
 l8w8jwt example HS512 token: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDg4NjEyMjgsImV4cCI6MTc0ODg2MTgyOCwic3ViIjoiR29yZG9uIEZyZWVtYW4iLCJpc3MiOiJCbGFjayBNZXNhIiwiYXVkIjoiQWRtaW5pc3RyYXRvciJ9.nVuPVFtW3DqCI-XQDvBWG_OfvuDH6Tt_MR7f72Dpq8sztkTWs6pO6OJDh_3Eeh5xbVLqbTxiXILPCfo6NkgCwA
 ```
 
-Now let's send a request to `http://localhost:4000/decode` for decoding. We'll receive a `Success!` response again and see that in the terminal:
+Now let's send a request to `http://localhost:3000/decode` for decoding. We'll receive a `Success!` response again and see that in the terminal:
 
 ```
 Example HS512 token validation successful!

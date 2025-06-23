@@ -66,7 +66,7 @@ int main()
 
     get("/cbor", hello_world_cbor);
 
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
@@ -202,7 +202,7 @@ int main()
     post("/user-cbor", handle_user_cbor);   // Add this
     get("/cbor", hello_world_cbor);
 
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
@@ -222,7 +222,7 @@ ecewo run
 
 Let's send a `curl` request and download the binary:
 ```
-curl -X GET http://localhost:4000/cbor -o hello_world.cbor
+curl -X GET http://localhost:3000/cbor -o hello_world.cbor
 ```
 
 This command will generate a `hello_world.cbor` binary in the root directory.
@@ -278,7 +278,7 @@ python handle_user.py
 
 There will be generated a `handle_user.cbor` binary in the root directory. Now it's time to send that binary file to our server via POSTMAN.
 
-Open the POSTMAN and set a `POST` request to the `http://localhost:4000/user-cbor` address. Select the `binary` body and send the `handle_user.cbor` file that we generated.
+Open the POSTMAN and set a `POST` request to the `http://localhost:3000/user-cbor` address. Select the `binary` body and send the `handle_user.cbor` file that we generated.
 
 When we send the request, we'll see a `Success!` message if the process completed successfully. And in the terminal of Ecewo, we'll see the content of our binary:
 

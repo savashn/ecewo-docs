@@ -97,7 +97,7 @@ int main()
     get("/user", use(auth), users_handler);  // Runs auth middleware first, then the handler
     get("/admin", use(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
 
-    ecewo(4000);  // Start the server on port 4000
+    ecewo(3000);  // Start the server on port 3000
     reset_middleware();    // Free allocated middleware memory
     reset_router();
     return 0;
@@ -258,22 +258,22 @@ Ecewo offers `get_context()` and `set_context()` to publish data between multipl
 #include "cJSON.h"
 #include "context.h"
 
-int is_auth(Req *req, Res *res, Chain *chain) {
+int is_auth(Req *req, Res *res, Chain *chain)
+{
     // Get the user session
     Session *user_session = get_session(&req->headers);
 
-    // If user has not authenticated, break the chain
-    if (!user_session)
+    if (!user_session || !user_session->data)
     {
-        send_text(401, "Unauthorized");
-        return 0;
+        printf("No session found, continuing without auth context\n");
+        return next(chain, req, res);
     }
 
-    // Otherwise, pass the session daha to the context
     // Parse session JSON once (remember that session->data is a JSON object)
     cJSON *session_data = cJSON_Parse(user_session->data);
 
-    if (!session_data) {
+    if (!session_data)
+    {
         send_text(500, "Error: Failed to parse session data");
         return 0;
     }
@@ -281,7 +281,8 @@ int is_auth(Req *req, Res *res, Chain *chain) {
     // Allocate context and attach
     session_context_t *session_ctx = malloc(sizeof(session_context_t));
 
-    if (!session_ctx) {
+    if (!session_ctx)
+    {
         cJSON_Delete(session_data);
         send_text(500, "Internal Server Error");
         return 0;

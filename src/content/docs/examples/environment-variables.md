@@ -18,7 +18,7 @@ We define a `PORT` in `.env`:
 ```
 // .env
 
-PORT=4000
+PORT=3000
 ```
 
 Let's parse it in `main.c`:
@@ -36,7 +36,7 @@ int main()
     const char *port = getenv("PORT");  // Get the "PORT"
     printf("PORT: %s\n", port);         // Print the "PORT"
 
-    ecewo(4000);                        // Start the server
+    ecewo(3000);                        // Start the server
     return 0;                           // Exit
 }
 ```

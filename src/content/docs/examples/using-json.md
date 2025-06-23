@@ -58,13 +58,13 @@ int main()
 {
     init_router();
     get("/", hello_world);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
 ```
 
-Now we can recompile and send a request to `http://localhost:4000/` again. We'll receive a JSON:
+Now we can recompile and send a request to `http://localhost:3000/` again. We'll receive a JSON:
 
 ```
 {"hello":"world"}
@@ -141,13 +141,13 @@ int main()
 {
     init_router();
     post("/user", handle_user);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
 ```
 
-Let's recompile the program and send a `POST` request to `http://localhost:4000/user` with this body:
+Let's recompile the program and send a `POST` request to `http://localhost:3000/user` with this body:
 
 ```
 {

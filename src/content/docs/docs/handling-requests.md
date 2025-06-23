@@ -44,13 +44,13 @@ int main()
 {
     init_router();
     post("/print-body", print_body);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
 ```
 
-Let's send a `POST` request to the `http://localhost:4000/print-body` with this body:
+Let's send a `POST` request to the `http://localhost:3000/print-body` with this body:
 
 ```json
 {
@@ -118,13 +118,13 @@ int main()
 {
     init_router();
     get("/send-params/:slug", send_params);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
 ```
 
-Recompile the program and send a request to `http://localhost:4000/send-params/testslug`. Server will send us `testslug` response.
+Recompile the program and send a request to `http://localhost:3000/send-params/testslug`. Server will send us `testslug` response.
 
 We can define more than one slug if we need using the same way. Here is an example:
 
@@ -138,7 +138,7 @@ int main()
 {
     init_router();
     get("/print-more-params/:key/and/:value");
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
@@ -179,7 +179,7 @@ void print_more_params(Req *req, Res *res)
 }
 ```
 
-If we go to `http://localhost:4000/print-more-params/foo/and/bar` path, we'll receive a `Success!` response and see the `foo` and `bar` in the console:
+If we go to `http://localhost:3000/print-more-params/foo/and/bar` path, we'll receive a `Success!` response and see the `foo` and `bar` in the console:
 
 ```
 Key slug: foo Value slug: bar
@@ -199,7 +199,7 @@ int main()
 {
     init_router();
     get("/print-query", print_query);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
@@ -240,7 +240,7 @@ void print_query(Req *req, Res *res)
 }
 ```
 
-Let's recompile the program and send a request to `http://localhost:4000/print-query?name=john&surname=doe`. We'll receive a `Success!` responseand the query strings will be printed in the console:
+Let's recompile the program and send a request to `http://localhost:3000/print-query?name=john&surname=doe`. We'll receive a `Success!` responseand the query strings will be printed in the console:
 
 ```
 Name: john Surname: doe
@@ -310,7 +310,7 @@ int main()
 {
     init_router();
     get("/header", get_user_agent);
-    ecewo(4000);
+    ecewo(3000);
     reset_router();
     return 0;
 }
