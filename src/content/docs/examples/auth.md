@@ -19,7 +19,7 @@ With the power of these APIs, we can easily manage the authentication and author
 
 Let's make an authentication example and see how it works.
 
-First, we need to install the `session.c` and `session.h` files from [Plugins](https://github.com/savashn/ecewo/tree/main/plugins) and add them to our project.
+First, we need to install the `session.c` and `session.h` files from [here](https://github.com/savashn/ecewo-session) and add them to our project.
 
 ### Login
 

@@ -13,7 +13,7 @@ Ecewo includes an `async.h` module that provides `task()` and `then()` APIs, sim
 
 For this reason, it is recommended to use `async.h` only for heavy operations — such as file based operations or external API calls.
 
-For database queries, Ecewo supports `libpq` — an asynchronous library for PostgreSQL — out of the box. If you are using PostgreSQL, it is recommended to use `pq.h` instead of `async.h`. See the [Async Postgres Queries](/docs/async-operations/#async-postgres-queries).
+For database queries, Ecewo supports `libpq` — an asynchronous library for PostgreSQL — out of the box. If you are using PostgreSQL, it is recommended to use `pquv.h` instead of `async.h`. See the [Async Postgres Queries](/docs/async-operations/#async-postgres-queries).
 
 If you’re using another database, such as SQLite, you may still use `async.h` for performance-critical queries.
 
@@ -461,14 +461,12 @@ Intermediate too large to multiply
 
 ## Async Postgres Queries
 
-Ecewo provides `pq.h` for performing asynchronous PostgreSQL queries via [libpq](https://www.postgresql.org/docs/current/libpq.html).
-
-Queue → Execute → Callback → Queue → Auto-continue
+Ecewo provides `pquv.h` for performing asynchronous PostgreSQL queries via [libpq](https://www.postgresql.org/docs/current/libpq.html).
 
 ### Installation
 
 - You need to [install PostgreSQL](https://www.postgresql.org/download/) first.
-- Copy the `pq.c` and `pq.h` files from [ecewo-plugins](https://github.com/savashn/ecewo-plugins/tree/main/src) and paste them into your existing project.
+- Copy the `pquv.c` and `pquv.h` files from [here](https://github.com/savashn/pquv) and paste them into your existing project.
 - Configure your CMake as follows:
 
 ```cmake
@@ -486,11 +484,11 @@ target_link_libraries(server PRIVATE
 
 ### Usage
 
-`pq.h` is providing three functions:
+`pquv.h` is providing three functions:
 
-- `pq.create()` to create an async operation. It takes 2 parameters: a context and database connection.
-- `pq.queue()` to queue a database query. It takes 5 parameters: the variable that created with `pq.create()`, the SQL query, the count of params, the result callback, and the context.
-- `pq.execute()` to execute the async operation. It takes 1 parameter: the variable that created with `pq.create()`.
+- `pquv.create()` to create an async operation. It takes 2 parameters: a context and database connection.
+- `pquv.queue()` to queue a database query. It takes 5 parameters: the variable that created with `pquv.create()`, the SQL query, the count of params, the result callback, and the context.
+- `pquv.execute()` to execute the async operation. It takes 1 parameter: the variable that created with `pquv.create()`.
 
 Here is an example of synchronous querying: 
 
@@ -592,7 +590,7 @@ void get_all_users_async(Req *req, Res *res)
     *ctx->res = *res;
 
     // Create async PostgreSQL context
-    pg_async_t *pg = pq_create(db, ctx);
+    pg_async_t *pg = pquv_create(db, ctx);
     if (!pg)
     {
         send_text(500, "Failed to create async context");
@@ -601,7 +599,7 @@ void get_all_users_async(Req *req, Res *res)
     }
 
     // Queue the query
-    int result = pq_queue(pg, sql, 0, NULL, users_result_callback, ctx);
+    int result = pquv_queue(pg, sql, 0, NULL, users_result_callback, ctx);
     if (result != 0)
     {
         send_text(500, "Failed to queue query");
@@ -610,7 +608,7 @@ void get_all_users_async(Req *req, Res *res)
     }
 
     // Start execution (this will return immediately)
-    result = pq_execute(pg);
+    result = pquv_execute(pg);
     if (result != 0)
     {
         printf("get_all_users_async: Failed to execute query\n");
@@ -675,11 +673,11 @@ static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
     printf("users_result_callback: Response sent successfully\n");
 
     // If you want to continue the querying,
-    // you shuld basicly write a new `pq_queue()` here
+    // you shuld basicly write a new `pquv_queue()` here
     // it will queue the new query immediately
 }
 ```
 
 > **NOTE**
 >
-> The `pq_create()` and `pq_execute()` functions have to run once. If you wish to continue with more queries, you should basicly write the new queue with `pq_queue()` and it will be ran automatically.
+> The `pquv_create()` and `pquv_execute()` functions have to run once. If you wish to continue with more queries, you should basicly write the new queue with `pquv_queue()` and it will be ran automatically.
