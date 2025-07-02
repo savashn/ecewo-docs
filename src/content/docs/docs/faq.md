@@ -5,7 +5,7 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 ## Is *Ecewo* Production Ready?
 
-This is a **hobby project** that I'm developing to improve my programming skills. So it might not be production-ready and it doesn't need to be.
+Ecewo is a **hobby project** that I'm developing to improve my programming skills. So it might not be production-ready yet, and it doesn't have to be. However, I'm doing my best.
 
 ## What Am I Trying To Do?
 
@@ -17,7 +17,7 @@ For the same reason as with other languages. You might prefer Rust for low-level
 
 ## Do We Need C Level Performance for Backends?
 
-We do not. I just want to do something exciting.
+We don't. I just want to do something exciting.
 
 ## Where Does The Name *Ecewo* Come From?
 
