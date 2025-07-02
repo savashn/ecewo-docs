@@ -9,13 +9,11 @@ Since C doesn’t natively support asynchronous operations, this can be one of t
 
 Ecewo includes an `async.h` module that provides `task()` and `then()` APIs, similar to `promise().then()` behavior in JavaScript. These are simplify working with [libuv](https://github.com/libuv/libuv), a native C library designed for asynchronous I/O operations.
 
-`async.h` uses a thread pool approach, meaning it creates a new thread each time it runs. Therefore, using it for lightweight tasks may result in thread-switching overhead and unnecessary memory usage.
+`async.h` uses libuv’s thread pool to execute tasks in the background. While it doesn't create a new thread for every task, using it for very lightweight operations may still introduce context-switching overhead and unnecessary resource usage.
 
-For this reason, it is recommended to use `async.h` only for heavy operations — such as file based operations or external API calls.
+For this reason, it is recommended to use `async.h` only for **heavy or long-running operations** — such as processing large files or making external API calls that involve network latency or blocking behavior.
 
-For database queries, Ecewo supports `libpq` — an asynchronous library for PostgreSQL — out of the box. If you are using PostgreSQL, it is recommended to use `pquv.h` instead of `async.h`. See the [Async Postgres Queries](/docs/async-operations/#async-postgres-queries).
-
-If you’re using another database, such as SQLite, you may still use `async.h` for performance-critical queries.
+For asynchronous database queries, see the [Async Postgres Queries](/docs/async-operations/#async-postgres-queries) section.
 
 ### The Async Logic
 
@@ -461,12 +459,16 @@ Intermediate too large to multiply
 
 ## Async Postgres Queries
 
-Ecewo provides `pquv.h` for performing asynchronous PostgreSQL queries via [libpq](https://www.postgresql.org/docs/current/libpq.html).
+For asynchronous database queries, Ecewo supports [libpq](https://www.postgresql.org/docs/current/libpq.html) — the official PostgreSQL client library, which includes asynchronous support.
+
+If you are using PostgreSQL, it is recommended to use [pquv](https://github.com/savashn/pquv) — which combines libpq and libuv — for database operations instead of `async.h`.
+
+If you’re using another database, such as SQLite, you may still use `async.h` for performance-critical big queries.
 
 ### Installation
 
 - You need to [install PostgreSQL](https://www.postgresql.org/download/) first.
-- Copy the `pquv.c` and `pquv.h` files from [here](https://github.com/savashn/pquv) and paste them into your existing project.
+- Copy the `pquv.c` and `pquv.h` files from [the repository](https://github.com/savashn/pquv) and paste them into your existing project.
 - Configure your CMake as follows:
 
 ```cmake
