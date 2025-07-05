@@ -16,40 +16,20 @@ Ecewo provides built-in `CORS` configuration feature. It takes these options:
 >
 > If you want to disable the `CORS` configuration for a while, you can add `.enabled = false` to your configuration to do it.
 
-Let's write a test handler with CORS:
-
-```c
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void hello_world(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
-
-void hello_world(Req *req, Res *res)
-{
-    set_header(res, "X-Custom", "value");
-    send_text(200, "hello world");
-}
-```
-
-Now let's write our `CORS` configuration:
+Now let's write our `CORS` configuration and a handler:
 
 ```c
 // src/main.c
 
 #include "server.h"
+#include "ecewo.h"
 #include "cors.h"
+
+void hello_world(Req *req, Res *res)
+{
+    set_header(res, "X-Custom", "value");
+    send_text(res, 200, "hello world");
+}
 
 int main()
 {
@@ -61,7 +41,7 @@ int main()
         .max_age = "86400",                       // Default "3600"
     };
 
-    init_cors(&my_cors);    // Register CORS
+    init_cors(&my_cors);  // Register CORS
 
     init_router();
 
@@ -69,7 +49,7 @@ int main()
 
     ecewo(3000);
     reset_router();
-    reset_cors();   // Free the memory that allocated by CORS
+    reset_cors();  // Free the memory that allocated by CORS
     return 0;
 }
 ```

@@ -10,35 +10,16 @@ Let's see how it basically works.
 ## Request Body
 
 ```c
-// src/handlers.h
+// main.c
 
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
+#include "server.h"
 #include "ecewo.h"
-
-void print_body(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
 
 void print_body(Req *req, Res *res)
 {
     printf("Body: %s\n", req->body);
-    send_text(200, "Success!");
+    send_text(res, 200, "Success!");
 }
-```
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers.h"   // "ecewo.h" already comes from here
 
 int main()
 {
@@ -77,42 +58,23 @@ For more advanced usage; see [Using JSON](/docs/using-json) chapter.
 Let's take a specific user by params. We can access the params using the `get_params("slug");` API. Let's write a handler that gives us the "slug":
 
 ```c
-// src/handlers.h
+// main.c
 
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
+#include "server.h"
 #include "ecewo.h"
-
-void send_params(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
 
 void send_params(Req *req, Res *res)
 {
-    const char *slug = get_params("slug"); // We got the params
+    const char *slug = get_params(req, "slug"); // We got the params
 
     if (slug == NULL)
     {
-        send_text(400, "Missing 'slug' parameter");
+        send_text(res, 400, "Missing 'slug' parameter");
         return;
     }
 
-    send_text(200, slug);
+    send_text(res, 200, slug);
 }
-```
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers.h"
 
 int main()
 {
@@ -129,10 +91,26 @@ Recompile the program and send a request to `http://localhost:3000/send-params/t
 We can define more than one slug if we need using the same way. Here is an example:
 
 ```c
-// src/main.c
+// main.c
 
 #include "server.h"
-#include "handlers.h"
+#include "ecewo.h"
+
+void print_more_params(Req *req, Res *res)
+{
+    const char *key = get_params(req, "key");      // We got the /:key
+    const char *value = get_params(req, "value");  // We got the /:value
+
+    if (key == NULL || value == NULL)
+    {
+        send_text(res, 400, "Missing 'key' or 'value' parameter");
+        return;
+    }
+
+    printf("Key slug: %s Value slug: %s\n", key, value);
+
+    send_text(res, 200, "Success!");
+}
 
 int main()
 {
@@ -141,41 +119,6 @@ int main()
     ecewo(3000);
     reset_router();
     return 0;
-}
-```
-
-```c
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void print_more_params(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
-
-void print_more_params(Req *req, Res *res)
-{
-    const char *key = get_params("key");        // We got the /:key
-    const char *value = get_params("value");    // We got the /:value
-
-    if (key == NULL || value == NULL)
-    {
-        send_text(400, "Missing 'key' or 'value' parameter");
-        return;
-    }
-
-    printf("Key slug: %s Value slug: %s\n", key, value);
-
-    send_text(200, "Success!");
 }
 ```
 
@@ -190,10 +133,26 @@ Key slug: foo Value slug: bar
 Just like the `params`, we can use `get_query("query");` to get the query params. Let's rewrite a handler using `query`: 
 
 ```c
-// src/main.c
+// main.c
 
 #include "server.h"
-#include "handlers.h"
+#include "ecewo.h"
+
+void print_query(Req *req, Res *res)
+{
+    const char *name = get_query(req, "name");
+    const char *surname = get_query(req, "surname");
+
+    if (name == NULL || surname == NULL)
+    {
+        send_text(res, 400, "Missing required parameter.");
+        return;
+    }
+
+    printf("Name: %s Surname: %s\n", name, surname);
+
+    send_text(res, 200, "Success!");
+}
 
 int main()
 {
@@ -202,41 +161,6 @@ int main()
     ecewo(3000);
     reset_router();
     return 0;
-}
-```
-
-```c
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void print_query(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers.c
-
-#include "ecewo.h"
-
-void print_query(Req *req, Res *res)
-{
-    const char *name = get_query("name");
-    const char *surname = get_query("surname");
-
-    if (name == NULL || surname == NULL)
-    {
-        send_text(400, "Missing required parameter.");
-        return;
-    }
-
-    printf("Name: %s Surname: %s\n", name, surname);
-
-    send_text(200, "Success!");
 }
 ```
 
@@ -268,43 +192,23 @@ Typically, a standard `GET` request with `POSTMAN` have some headers like:
 Let's say, we need the `User-Agent` header:
 
 ```c
-// src/handlers.h
+// main.c
 
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
+#include "server.h"
 #include "ecewo.h"
-
-void get_user_agent(Req *req, Res *res);
-
-#endif
-```
-
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
 
 void get_user_agent(Req *req, Res *res)
 {
-    const char *user_agent = get_headers("User-Agent");
+    const char *user_agent = get_headers(req, "User-Agent");
 
     if (user_agent == NULL)
     {
-        send_text(400, "Missing required parameter.");
+        send_text(res, 400, "Missing required parameter.");
         return;
     }
 
-    send_text(200, user_agent);
+    send_text(res, 200, user_agent);
 }
-```
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers.h"
 
 int main()
 {

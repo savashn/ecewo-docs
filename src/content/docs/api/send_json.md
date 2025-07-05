@@ -10,7 +10,7 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 void hello_world(Req *req, Res *res)
 {
-    send_json(200, "{ \"message\": \"hello world!\" }");
+    send_json(res, 200, "{ \"message\": \"hello world!\" }");
 }
 ```
 

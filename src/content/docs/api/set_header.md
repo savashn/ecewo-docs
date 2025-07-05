@@ -9,6 +9,6 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 void hello_world(Req *req, Res *res)
 {
     set_header(res, "X-Custom", "value");
-    send_text(200, "hello world");
+    send_text(res, 200, "hello world");
 }
 ```

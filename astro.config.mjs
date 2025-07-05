@@ -24,15 +24,16 @@ export default defineConfig({
 						{ label: 'Cookie', slug: 'docs/cookie' },
 						{ label: 'Middleware', slug: 'docs/middleware' },
 						{ label: 'Async Operations', slug: 'docs/async-operations' },
-						{ label: 'CORS Configuration', slug: 'docs/cors' }
+						{ label: 'CORS Configuration', slug: 'docs/cors' },
+						{ label: 'Session', slug: 'docs/session' }
 					]
 				},
 				{
 					label: 'Examples',
 					items: [
 						{ label: 'Using JSON', slug: 'examples/using-json' },
-						{ label: 'Using A Database', slug: 'examples/using-a-database' },
-						{ label: 'Authentication', slug: 'examples/auth' },
+						{ label: 'Using Database', slug: 'examples/using-database' },
+						{ label: 'Using JWT', slug: 'examples/using-jwt' },
 						{ label: 'Environment Variables', slug: 'examples/environment-variables' },
 						{ label: 'Using CBOR', slug: 'examples/using-cbor' }
 					]

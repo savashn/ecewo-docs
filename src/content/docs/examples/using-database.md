@@ -12,18 +12,17 @@ Install [SQLite3](https://www.sqlite.org/download.html) and add the `sqlite3.c` 
 ```
 your-project/
 ├── CMakeLists.txt          # CMake of our project
+├── vendors/                # Our external libraries
+│   ├── sqlite3.c       # SQLite3 source file we installed
+│   └── sqlite3.h       # SQLite3 header file we installed
 └── src/                    # Source code of ours
-    ├── main.c              # Main application entry point
-    ├── vendors/            # Our external libraries
-    │   ├── sqlite3.c       # SQLite3 source file we installed
-    │   └── sqlite3.h       # SQLite3 header file we installed
     ├── handlers/           # Folder for our handlers
     │   ├── handlers.c      # Our handlers
     │   └── handlers.h      # Header file of handlers
     ├── db/                 # Folder for our database migrations
     │   ├── db.h            # Our database header file
     │   └── db.c            # Our database configs
-    └── CMakeLists.txt      # Our compiling configs
+    └── main.c              # Main application entry point
 ```
 
 ## Connecting To Database
@@ -149,7 +148,7 @@ void add_user(Req *req, Res *res)
     // If there is no body, return a 400 Bad Request response
     if (body == NULL)
     {
-        send_text(400, "Missing request body");
+        send_text(res, 400, "Missing request body");
         return;
     }
 
@@ -159,7 +158,7 @@ void add_user(Req *req, Res *res)
     // If JSON parsing fails, return a 400 Bad Request response
     if (!json)
     {
-        send_text(400, "Invalid JSON");
+        send_text(res, 400, "Invalid JSON");
         return;
     }
 
@@ -173,7 +172,7 @@ void add_user(Req *req, Res *res)
 
     {
         cJSON_Delete(json);
-        send_text(400, "Missing fields");
+        send_text(res, 400, "Missing fields");
         return;
     }
 
@@ -186,7 +185,7 @@ void add_user(Req *req, Res *res)
     if (rc != SQLITE_OK)
     {
         cJSON_Delete(json);
-        send_text(500, "DB prepare failed");
+        send_text(res, 500, "DB prepare failed");
         return;
     }
 
@@ -203,12 +202,12 @@ void add_user(Req *req, Res *res)
     // If the insert operation fails, return a 500 error
     if (rc != SQLITE_DONE)
     {
-        send_text(500, "DB insert failed");
+        send_text(res, 500, "DB insert failed");
         return;
     }
 
     // If everything is successful, return a 201 Created response
-    send_text(201, "User created!");
+    send_text(res, 201, "User created!");
 }
 ```
 
@@ -291,7 +290,7 @@ void get_all_users(Req *req, Res *res)
 
     if (rc != SQLITE_OK)
     {
-        send_text(500, "DB prepare failed");
+        send_text(res, 500, "DB prepare failed");
         return;
     }
 
@@ -313,7 +312,7 @@ void get_all_users(Req *req, Res *res)
 
     if (rc != SQLITE_DONE)
     {
-        send_text(500, "DB step failed");
+        send_text(res, 500, "DB step failed");
         sqlite3_finalize(stmt);
         cJSON_Delete(json_array);
         return;
@@ -321,7 +320,7 @@ void get_all_users(Req *req, Res *res)
 
     char *json_string = cJSON_PrintUnformatted(json_array);
 
-    send_json(200, json_string); // Send the json response
+    send_json(res, 200, json_string); // Send the json response
 
     // Free the allocated memory when we are done:
     cJSON_Delete(json_array);

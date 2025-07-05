@@ -14,10 +14,10 @@ void get_all_cookies(Req *req, Res *res)
 
     if (!cookies)
     {
-        send_text(404, "No cookies found");
+        send_text(res, 404, "No cookies found");
         return;
     }
 
-    send_text(200, cookies);
+    send_text(res, 200, cookies);
 }
 ```

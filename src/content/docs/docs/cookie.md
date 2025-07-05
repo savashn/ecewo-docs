@@ -3,7 +3,7 @@ title: Cookie
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-Ecewo offers a `cookie` API to get or set a cookie:
+Ecewo offers a `cookie.h` to get or set a cookie:
 - `get_cookie()` to get the `Cookie` header
 - `set_cookie()` to set a `Cookie` header.
 
@@ -54,7 +54,7 @@ void set_cookie_handler(Req *req, Res *res)
 {
     set_cookie("theme", "dark", 3600); // 1 hour
     set_cookie("name", "john", 7200);  // 2 hour
-    send_text(200, "Cookies sent!");
+    send_text(res, 200, "Cookies sent!");
 }
 
 void get_cookie_handler(Req *req, Res *res)
@@ -63,11 +63,11 @@ void get_cookie_handler(Req *req, Res *res)
 
     if (!theme)
     {
-        send_text(404, "Cookies not found");
+        send_text(res, 404, "Cookies not found");
         return;
     }
 
-    send_text(200, theme);
+    send_text(res, 200, theme);
     free(theme);
 }
 
@@ -77,13 +77,17 @@ void get_all_cookies(Req *req, Res *res)
 
     if (!cookies)
     {
-        send_text(404, "No cookies found");
+        send_text(res, 404, "No cookies found");
         return;
     }
 
-    send_text(200, cookies);
+    send_text(res, 200, cookies);
 }
 ```
+
+> **NOTE**
+>
+> The developer is responsible for freeing the memory of `get_cookie()`
 
 `get_cookie()` actually runs [get_headers()](/docs/handling-requests#request-headers) under the hood, and it searchs the `Cookie` header only. Remember, you have to free its memory after you use.
 

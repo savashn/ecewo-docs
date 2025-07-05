@@ -17,6 +17,6 @@ void hello_world(Req *req, Res *res)
         "<body><h1>Hello, world!</h1></body>"
         "</html>";
 
-    send_html(200, html);
+    send_html(res, 200, html);
 }
 ```

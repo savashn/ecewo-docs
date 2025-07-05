@@ -50,7 +50,7 @@ void hello_world_cbor(Req *req, Res *res)
     size_t len = cbor_encoder_get_buffer_size(&encoder, buffer);
 
     // Send the CBOR response with status code 200
-    send_cbor(200, buffer, len);
+    send_cbor(res, 200, buffer, len);
 }
 ```
 
@@ -103,7 +103,7 @@ void handle_user_cbor(Req *req, Res *res)
 
     if (!data || data_len == 0)
     {
-        send_text(400, "Missing request body");
+        send_text(res, 400, "Missing request body");
         return;
     }
 
@@ -113,14 +113,14 @@ void handle_user_cbor(Req *req, Res *res)
     CborError err = cbor_parser_init(data, data_len, 0, &parser, &it);
     if (err != CborNoError)
     {
-        send_text(400, "Invalid CBOR");
+        send_text(res, 400, "Invalid CBOR");
         return;
     }
 
     // Check that the outermost item is a map (dictionary)
     if (!cbor_value_is_map(&it))
     {
-        send_text(400, "Expected CBOR map");
+        send_text(res, 400, "Expected CBOR map");
         return;
     }
 
@@ -134,13 +134,13 @@ void handle_user_cbor(Req *req, Res *res)
     err = cbor_value_map_find_value(&map, "name", &val);
     if (err != CborNoError || !cbor_value_is_text_string(&val))
     {
-        send_text(400, "Missing or invalid 'name'");
+        send_text(res, 400, "Missing or invalid 'name'");
         goto cleanup;
     }
     err = cbor_value_dup_text_string(&val, &name, &len, &it);
     if (err != CborNoError)
     {
-        send_text(400, "Failed to read 'name'");
+        send_text(res, 400, "Failed to read 'name'");
         goto cleanup;
     }
 
@@ -148,13 +148,13 @@ void handle_user_cbor(Req *req, Res *res)
     err = cbor_value_map_find_value(&map, "surname", &val);
     if (err != CborNoError || !cbor_value_is_text_string(&val))
     {
-        send_text(400, "Missing or invalid 'surname'");
+        send_text(res, 400, "Missing or invalid 'surname'");
         goto cleanup;
     }
     err = cbor_value_dup_text_string(&val, &surname, &len, &it);
     if (err != CborNoError)
     {
-        send_text(400, "Failed to read 'surname'");
+        send_text(res, 400, "Failed to read 'surname'");
         goto cleanup;
     }
 
@@ -162,13 +162,13 @@ void handle_user_cbor(Req *req, Res *res)
     err = cbor_value_map_find_value(&map, "username", &val);
     if (err != CborNoError || !cbor_value_is_text_string(&val))
     {
-        send_text(400, "Missing or invalid 'username'");
+        send_text(res, 400, "Missing or invalid 'username'");
         goto cleanup;
     }
     err = cbor_value_dup_text_string(&val, &username, &len, &it);
     if (err != CborNoError)
     {
-        send_text(400, "Failed to read 'username'");
+        send_text(res, 400, "Failed to read 'username'");
         goto cleanup;
     }
 
@@ -176,7 +176,7 @@ void handle_user_cbor(Req *req, Res *res)
     printf("Name: %s\n", name);
     printf("Surname: %s\n", surname);
     printf("Username: %s\n", username);
-    send_text(200, "Success!");
+    send_text(res, 200, "Success!");
 
 cleanup:
     // Free allocated strings

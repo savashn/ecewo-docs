@@ -46,7 +46,7 @@ target_link_libraries(server PRIVATE ecewo)
 #include "ecewo.h"     // Our main API
 
 void hello_world(Req *req, Res *res) {
-    send_text(200, "Hello, World!");
+    send_text(res, 200, "Hello, World!");
 }
 
 int main() {
@@ -62,13 +62,13 @@ This is defining handler. We include `"ecewo.h"` header, which is the main modul
 
 And this is our handler. We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `send_text()` is a macro for sending `text/plain` responses to the client.
 
-When we are done with the handler, we need to send a response to the client using one of the following macros:
+When we are done with the handler, we need to send a response to the client using one of the following functions:
 - [send_text()](/api/send_text/) is for `text/plain` responses,
 - [send_html()](/api/send_html/) is for `html/plain` responses,
 - [send_json()](/api/send_json/) is for `application/json` responses,
 - [send_cbor()](/api/send_cbor/) is for `application/cbor` responses.
 
-Basically, they take 2 parameters: a status code and a response body — except for `send_cbor()`, which takes three: a status code, a response body, and the length of the response body.
+Basically, they take 3 parameters: the response object, a status code and a response body — except for `send_cbor()`, which takes four: the response object, a status code, a response body, and the length of the response body.
 
 The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a `PORT` parameter of type `unsigned short`.
 

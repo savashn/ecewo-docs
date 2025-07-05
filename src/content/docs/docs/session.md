@@ -1,12 +1,12 @@
 ---
-title: Authentication and Authorization
+title: Session-Based Authentication
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-## Sessions
+Ecewo offers session management feature for authentication and authorization. First, we need to install the `session.c` and `session.h` files from [ecewo-session repository](https://github.com/savashn/ecewo-session) and add them to our project.
 
-Ecewo offers some session management APIs for authentication and authorization:
-
+- `init_sessions()` to initialize the session system
+- `reset_sessions()` to clean up and free all session resources
 - `create_session()` to create a session
 - `find_session()` to find a session in memory
 - `get_session()` to get the session from request
@@ -15,33 +15,19 @@ Ecewo offers some session management APIs for authentication and authorization:
 - `delete_sesion()` to delete the session both from the client and the memory
 - `print_sessions()` to print all the active sessions
 
-With the power of these APIs, we can easily manage the authentication and authorization.
+With the power of these functions, we can easily manage the authentication and authorization. Refer to the [README.md](https://github.com/savashn/ecewo-session/blob/main/README.md) file in the original repository for more detailed explanations.
 
 Let's make an authentication example and see how it works.
 
-First, we need to install the `session.c` and `session.h` files from [the repository](https://github.com/savashn/ecewo-session) and add them to our project.
-
-### Login
+## Login
 
 Let's write a `login` handler:
 
 ```c
-// src/handlers/handlers.h
+// main.c
 
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
+#include "server.h"
 #include "ecewo.h"
-
-void handle_login(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/handlers/handlers.c
-
-#include "handlers.h"
 #include "cJSON.h"
 #include "session.h"
 
@@ -56,14 +42,14 @@ void handle_login(Req *req, Res *res)
   const char *body = req->body;
   if (!body)
   {
-    send_text(400, "Missing request body");
+    send_text(res, 400, "Missing request body");
     return;
   }
 
   cJSON *json = cJSON_Parse(body);
   if (!json)
   {
-    send_text(400, "Invalid JSON");
+    send_text(res, 400, "Invalid JSON");
     return;
   }
 
@@ -73,7 +59,7 @@ void handle_login(Req *req, Res *res)
   if (!username || !password)
   {
     cJSON_Delete(json);
-    send_text(400, "Missing fields");
+    send_text(res, 400, "Missing fields");
     return;
   }
 
@@ -93,24 +79,15 @@ void handle_login(Req *req, Res *res)
     printf("Session ID: %s\n", sid);
     printf("Session JSON: %s\n", sess->data);
 
-    send_text(200, "Login successful!");
+    send_text(res, 200, "Login successful!");
   }
   else
   {
-    send_text(401, "Invalid username or password");
+    send_text(res, 401, "Invalid username or password");
   }
 
   cJSON_Delete(json);
 }
-
-```
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers/handlers.h"
-#include "session.h"
 
 int main()
 {
@@ -139,12 +116,16 @@ Let's send a request to `http://localhost:3000/login` with that body:
 
 If login is successful, we'll see a **"Login successful!"** response and a header like `"Cookie": "session_id=VKdbMRbqMhh_40F6ef2FreEba6JqkH16"` will be added to the headers.
 
-### Logout
+## Logout
 
 We also write a logout handler to use after login. Let's add these parts:
 
 ```c
-// src/handlers/handlers.c
+// main.c
+
+// ...
+// [handle_login is here]
+// ...
 
 // Add this handler:
 
@@ -155,40 +136,14 @@ void handle_logout(Req *req, Res *res)
 
     if (!session)
     {
-        send_text(400, "You have to login first");
+        send_text(res, 400, "You have to login first");
     }
     else
     {
         delete_session(res, session);
-        send_text(302, "Logged out");
+        send_text(res, 302, "Logged out");
     }
 }
-```
-
-Declare the logout handler too:
-
-```c
-// src/handlers/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void handle_login(Req *req, Res *res);
-void handle_logout(Req *req, Res *res); // We added now
-
-#endif
-```
-
-And also add to entry point:
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers/handlers.h"
-#include "session.h"
 
 int main()
 {
@@ -196,7 +151,7 @@ int main()
     init_sessions();
 
     post("/login", handle_login);
-    get("/logout", handle_logout); // We added it now
+    get("/logout", handle_logout); // We also added it
 
     ecewo(3000);
 
@@ -223,31 +178,16 @@ You have to login first
 >
 > `get_session()` is running `get_cookie()` under the hood, but it's specialized to extract the `session_id` from the `Cookie` header. While you need to manually free the memory returned by `get_cookie()`, you don't need to do that with `get_session()` — it handles memory management internally.
 
-### Getting Session Data
+## Getting Session Data
 
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
 ```c
-// src/handlers/handlers.h
+// main.c
 
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void handle_login(Req *req, Res *res);
-void handle_logout(Req *req, Res *res);
-void handle_session_data(Req *req, Res *res); // We added now
-
-#endif
-```
-
-```c
-// src/handlers/handlers.c
-
-#include "handlers.h"
-#include "cJSON.h"
-#include "session.h"
+// ...
+// [handle_login and handle_logout is here]
+// ...
 
 void handle_session_data(Req *req, Res *res)
 {
@@ -255,7 +195,7 @@ void handle_session_data(Req *req, Res *res)
 
     if (!user_session)
     {
-        send_text(401, "Error: Authentication required");
+        send_text(res, 401, "Error: Authentication required");
         return;
     }
 
@@ -264,7 +204,7 @@ void handle_session_data(Req *req, Res *res)
     if (!session_data)
     {
         /* If parsing fails, return an error */
-        send_text(500, "Error: Failed to parse session data");
+        send_text(res, 500, "Error: Failed to parse session data");
         return;
     }
 
@@ -273,25 +213,17 @@ void handle_session_data(Req *req, Res *res)
     if (!session_str)
     {
         cJSON_Delete(session_data);
-        send_text(500, "Error: Failed to serialize session data");
+        send_text(res, 500, "Error: Failed to serialize session data");
         return;
     }
 
     /* Send the session JSON back to the client */
-    send_json(200, session_str);
+    send_json(res, 200, session_str);
 
     /* Clean up */
     free(session_str);
     cJSON_Delete(session_data);
 }
-```
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers/handlers.h"
-#include "session.h"
 
 int main()
 {
@@ -328,7 +260,7 @@ Here are the session data, which we have added while the user is logging in.
 If you don't want the whole session data, but just one or two, you can do it as well:
 
 ```c
-// src/handlers/handlers.c
+// main.c
 
 void handle_session_data(Req *req, Res *res)
 {
@@ -336,7 +268,7 @@ void handle_session_data(Req *req, Res *res)
 
     if (!user_session)
     {
-        send_text(401, "Error: Authentication required");
+        send_text(res, 401, "Error: Authentication required");
         return;
     }
 
@@ -345,7 +277,7 @@ void handle_session_data(Req *req, Res *res)
     if (!session_data)
     {
         /* If parsing fails, return an error */
-        send_text(500, "Error: Failed to parse session data");
+        send_text(res, 500, "Error: Failed to parse session data");
         return;
     }
 
@@ -366,12 +298,12 @@ void handle_session_data(Req *req, Res *res)
     if (!json_str)
     {
         cJSON_Delete(session_data);
-        send_text(500, "Error: Failed to serialize session data");
+        send_text(res, 500, "Error: Failed to serialize session data");
         return;
     }
 
     /* Send the session JSON back to the client */
-    send_json(200, json_str);
+    send_json(res, 200, json_str);
 
     /* Clean up */
     free(json_str);
@@ -388,18 +320,14 @@ The output will be:
 }
 ```
 
-### Protected Routes
+## Protected Routes
 
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
 ```c
-// src/handlers/handlers.h
+// main.c
 
-void handle_protected(Req *req, Res *res);
-```
-
-```c
-// src/handlers/handlers.c
+// <-- Here are the other handlers -->
 
 void handle_protected(Req *req, Res *res)
 {
@@ -409,19 +337,31 @@ void handle_protected(Req *req, Res *res)
     // If the user hasn't, return an error with 401 status code
     if (!sess)
     {
-        send_text(401, "You must be logged in.");
+        send_text(res, 401, "You must be logged in.");
         return;
     }
 
     // If has, let the user in
-    send_text(200, "Welcome to the protected area!");
+    send_text(res, 200, "Welcome to the protected area!");
 }
-```
 
-```c
-// src/main.c
+int main()
+{
+    init_router();
+    init_sessions();
 
-get("/protected", handle_protected);
+    get("/protected", handle_protected); // We added it now
+    get("/session", handle_session_data);
+    post("/login", handle_login);
+    post("/logout", handle_logout);
+
+    ecewo(3000);
+
+    reset_sessions();
+    reset_router();
+
+    return 0;
+}
 ```
 
 Let's send a request to `http://localhost:3000/protected`. If we authenticated, we'll see:
@@ -441,26 +381,11 @@ For this example, we'll define a route with `slug` and we'll check first if the 
 If they are, then we'll run a sql query and send a response.
 
 ```c
-// src/main.c
+// main.c
 
-int main()
-{
-    // <-- Some other codes -->
-
-    get("/edit/:slug", edit_profile);
-
-    // <-- Some other codes -->
-}
-```
-
-```c
-// src/handlers/handlers.h
-
-void edit_profile(Req *req, Res *res);
-```
-
-```c
-// src/handlers/handlers.c
+// <---------------------->
+// <--- OTHER HANDLERS --->
+// <---------------------->
 
 // Example user info (it must be saved in a database)
 const char *STATIC_NAME = "John Doe";
@@ -473,14 +398,14 @@ void edit_profile(Req *req, Res *res)
   Session *sess = get_session(&req->headers);
   if (!sess)
   {
-    send_text(401, "Authentication required");
+    send_text(res, 401, "Authentication required");
     return;
   }
 
   cJSON *session_data = cJSON_Parse(sess->data);
   if (!session_data)
   {
-    send_text(500, "Invalid session data");
+    send_text(res, 500, "Invalid session data");
     return;
   }
 
@@ -490,7 +415,7 @@ void edit_profile(Req *req, Res *res)
   if (!slug || strcmp(slug, username->valuestring) != 0)
   {
     cJSON_Delete(session_data);
-    send_text(403, "Unauthorized: Slug does not match session username");
+    send_text(res, 403, "Unauthorized: Slug does not match session username");
     return;
   }
 
@@ -501,17 +426,36 @@ void edit_profile(Req *req, Res *res)
     cJSON_AddStringToObject(user_json, "name", STATIC_NAME);
 
     char *json_string = cJSON_PrintUnformatted(user_json);
-    send_json(200, json_string);
+    send_json(res, 200, json_string);
 
     cJSON_Delete(user_json);
     free(json_string);
   }
   else
   {
-    send_text(404, "User not found");
+    send_text(res, 404, "User not found");
   }
 
   cJSON_Delete(session_data);
+}
+
+int main()
+{
+    init_router();
+    init_sessions();
+
+    get("/edit/:slug", edit_profile);  // We added it now
+    get("/protected", handle_protected);
+    get("/session", handle_session_data);
+    post("/login", handle_login);
+    post("/logout", handle_logout);
+
+    ecewo(3000);
+
+    reset_sessions();
+    reset_router();
+
+    return 0;
 }
 ```
 
@@ -538,7 +482,7 @@ When we logged in as johndoe and send a request again, here is what we will get:
 }
 ```
 
-### Notes
+## Notes
 
 > **NOTE 1**
 >
@@ -551,151 +495,3 @@ When we logged in as johndoe and send a request again, here is what we will get:
 >If you store them in the memory, you will use `free_session()` and `delete_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
 >
 >But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.
-
-## JWT
-
-We can use [l8w8jwt](https://github.com/GlitchedPolygons/l8w8jwt) for authentication with JWT.
-
-There are [basic examples](https://github.com/GlitchedPolygons/l8w8jwt?tab=readme-ov-file#examples) in the GitHub page of `l8w8jwt`. We'll do the same examples in our Ecewo project:
-
-```c
-// src/handlers.h
-
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
-#include "ecewo.h"
-
-void encoding_handler(Req *req, Res *res);
-void decoding_handler(Req *req, Res *res);
-
-#endif
-```
-
-```c
-// src/main.c
-
-#include "server.h"
-#include "handlers.h"
-
-int main()
-{
-  init_router();
-
-  get("/decode", decoding_handler);
-  get("/encode", encoding_handler);
-
-  ecewo(3000);
-  reset_router();
-  return 0;
-}
-```
-
-```c
-// src/handlers.c
-
-#include "handlers.h"
-#include "l8w8jwt/encode.h"
-#include "l8w8jwt/decode.h"
-
-static const char KEY[] = "YoUR sUpEr S3krEt 1337 HMAC kEy HeRE";
-static const char JWT[] = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1ODA5MzczMjksImV4cCI6MTU4MDkzNzkyOSwic3ViIjoiR29yZG9uIEZyZWVtYW4iLCJpc3MiOiJCbGFjayBNZXNhIiwiYXVkIjoiQWRtaW5pc3RyYXRvciJ9.7oNEgWxzs4nCtxOgiyTofP2bxZtL8dS7hgGXRPPDmwQWN1pjcwntsyK4Y5Cr9035Ro6Q16WOLiVAbj7k7TeCDA";
-
-void encoding_handler(Req *req, Res *res)
-{
-    char *jwt;
-    size_t jwt_length;
-
-    struct l8w8jwt_encoding_params params;
-    l8w8jwt_encoding_params_init(&params);
-
-    params.alg = L8W8JWT_ALG_HS512;
-
-    params.sub = "Gordon Freeman";
-    params.iss = "Black Mesa";
-    params.aud = "Administrator";
-
-    params.iat = l8w8jwt_time(NULL);
-    params.exp = l8w8jwt_time(NULL) + 600; /* Set to expire after 10 minutes (600 seconds). */
-
-    params.secret_key = (unsigned char *)"YoUR sUpEr S3krEt 1337 HMAC kEy HeRE";
-    params.secret_key_length = strlen(params.secret_key);
-
-    params.out = &jwt;
-    params.out_length = &jwt_length;
-
-    int r = l8w8jwt_encode(&params);
-
-    printf("\n l8w8jwt example HS512 token: %s \n", r == L8W8JWT_SUCCESS ? jwt : " (encoding failure) ");
-
-    /* Always free the output jwt string! */
-    l8w8jwt_free(jwt);
-
-    send_text(200, "Success!");
-}
-
-void decoding_handler(Req *req, Res *res)
-{
-    struct l8w8jwt_decoding_params params;
-    l8w8jwt_decoding_params_init(&params);
-
-    params.alg = L8W8JWT_ALG_HS512;
-
-    params.jwt = (char *)JWT;
-    params.jwt_length = strlen(JWT);
-
-    params.verification_key = (unsigned char *)KEY;
-    params.verification_key_length = strlen(KEY);
-
-    /*
-     * Not providing params.validate_iss_length makes it use strlen()
-     * Only do this when using properly NUL-terminated C-strings!
-     */
-    params.validate_iss = "Black Mesa";
-    params.validate_sub = "Gordon Freeman";
-
-    /* Expiration validation set to false here only because the above example token is already expired! */
-    params.validate_exp = 0;
-    params.exp_tolerance_seconds = 60;
-
-    params.validate_iat = 1;
-    params.iat_tolerance_seconds = 60;
-
-    enum l8w8jwt_validation_result validation_result;
-
-    int decode_result = l8w8jwt_decode(&params, &validation_result, NULL, NULL);
-
-    if (decode_result == L8W8JWT_SUCCESS && validation_result == L8W8JWT_VALID)
-    {
-        printf("\n Example HS512 token validation successful! \n");
-    }
-    else
-    {
-        printf("\n Example HS512 token validation failed! \n");
-    }
-
-    /*
-     * decode_result describes whether decoding/parsing the token succeeded or failed;
-     * the output l8w8jwt_validation_result variable contains actual information about
-     * JWT signature verification status and claims validation (e.g. expiration check).
-     *
-     * If you need the claims, pass an (ideally stack pre-allocated) array of struct l8w8jwt_claim
-     * instead of NULL,NULL into the corresponding l8w8jwt_decode() function parameters.
-     * If that array is heap-allocated, remember to free it yourself!
-     */
-
-    send_text(200, "Success!");
-}
-```
-
-Rebuild the project and send two different requests. First one is `http://localhost:3000/encode`. We'll receive a `Success!` response and there will be a token in the terminal:
-
-```
-l8w8jwt example HS512 token: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDg4NjEyMjgsImV4cCI6MTc0ODg2MTgyOCwic3ViIjoiR29yZG9uIEZyZWVtYW4iLCJpc3MiOiJCbGFjayBNZXNhIiwiYXVkIjoiQWRtaW5pc3RyYXRvciJ9.nVuPVFtW3DqCI-XQDvBWG_OfvuDH6Tt_MR7f72Dpq8sztkTWs6pO6OJDh_3Eeh5xbVLqbTxiXILPCfo6NkgCwA
-```
-
-Now let's send a request to `http://localhost:3000/decode` for decoding. We'll receive a `Success!` response again and see that in the terminal:
-
-```
-Example HS512 token validation successful!
-```

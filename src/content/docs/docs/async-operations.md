@@ -7,7 +7,7 @@ Since C doesn’t natively support asynchronous operations, this can be one of t
 
 ## General Purpose Async
 
-Ecewo includes an `async.h` module that provides `task()` and `then()` APIs, similar to `promise().then()` behavior in JavaScript. These are simplify working with [libuv](https://github.com/libuv/libuv), a native C library designed for asynchronous I/O operations.
+Ecewo includes an `async.h` module that provides `task()` and `then()` functions, similar to `promise().then()` behavior in JavaScript. These are simplify working with [libuv](https://github.com/libuv/libuv), a native C library designed for asynchronous I/O operations.
 
 `async.h` uses libuv’s thread pool to execute tasks in the background. While it doesn't create a new thread for every task, using it for very lightweight operations may still introduce context-switching overhead and unnecessary resource usage.
 
@@ -81,7 +81,6 @@ The example will be a very basic calculator that receives a number from `req->pa
 // Context for chained operations
 typedef struct
 {
-    Req *req;
     Res *res;
     long input;
     long intermediate;
@@ -95,7 +94,7 @@ static void multiply_work(async_t *task, void *context);
 static void multiply_done(void *context, int success, char *error);
 ```
 
-`Req *req` and `Res *res` must be in the struct everytime, we move their memory between the chains. The others are the variables we will use in the async operations.
+We define `Res *res` in the context struct because we use it out of the handler, so we move its memory within the chain. If we use `Req *req` too, we also need to define it in the struct.
 
 ### Step 2: Create An Entry Point
 
@@ -108,7 +107,7 @@ An entry point is our usual handler.
 void calculate(Req *req, Res *res)
 {
     // Get the number from request params
-    const char *num_str = get_params("num");
+    const char *num_str = get_params(req, "num");
 
     // Convert it to a number
     long num = num_str ? strtol(num_str, NULL, 10) : 0;
@@ -117,27 +116,13 @@ void calculate(Req *req, Res *res)
     ctx_t *ctx = malloc(sizeof(*ctx));
     if (!ctx)
     {
-        send_text(500, "Memory allocation failed");
+        send_text(res, 500, "Memory allocation failed");
         return;
     }
 
-    // Copy Req and Res to heap
-    ctx->req = malloc(sizeof(*ctx->req));
-    ctx->res = malloc(sizeof(*ctx->res));
+    // Deep copy Res to heap
+    ctx->res = copy_res(res);
 
-    if (!ctx->req || !ctx->res)
-    {
-        send_text(500, "Memory allocation failed");
-        if (ctx->req)
-            free(ctx->req);
-        if (ctx->res)
-            free(ctx->res);
-        free(ctx);
-        return;
-    }
-
-    *ctx->req = *req;
-    *ctx->res = *res;
     ctx->input = num;
     ctx->intermediate = 0;
     ctx->final = 0;
@@ -146,6 +131,8 @@ void calculate(Req *req, Res *res)
     task(ctx, add_work, add_done);
 }
 ```
+
+The [copy_res()](/api/copy_res) function is using for deep copying the `Res` object. We copy it into context structure because we need it in `add_work` and `add_done` functions. If we also need `Req` object, we can use [copy_req()](/api/copy_req) function.
 
 The `task(ctx, add_work, add_done)` takes three parameters: First one is the context, second one is the task function, and the third one is the completion function.
 
@@ -170,31 +157,29 @@ static void add_done(void *context, int success, char *error)
 {
     if (success)
     {
-        then(context, multiply_work, multiply_done);
-        // if success, "then" calls the next task named "multiply_work" and its completion "multiply_done()"
+        then(context, success, error, multiply_work, multiply_done);
+        // if success, "then" calls the next task named "multiply"
     }
     else
     {
         // Assign the context
         ctx_t *ctx = context;
 
-        // Assign ctx->res to a local variable because the text() macro waits for 'res'
-        Res *res = ctx->res;
-
         // Send a response
-        send_text(500, error);
+        send_text(ctx->res, 500, error);
 
         // Free the allocated memories
-        free(ctx->req);
-        free(ctx->res);
+        destroy_res(ctx->res);
         free(ctx);
     }
 }
 ```
 
+The [destroy_res()](/api/destroy_res) function is for freeing the copy of `Res` object. Ecewo also provides [destroy_req()](/api/destroy_req) function if we need.
+
 ### Step 4: Write The Second Operation
 
-At the previously step, `add_done()` function called the next operation with `then(context, multiply_work, multiply_done)` if the process is success. So let's write the multiplying operation.
+At the previously step, `add_done()` function called the next operation with `then(context, success, error, multiply_work, multiply_done)` if the process is success. So let's write the multiplying operation.
 
 ```c
 // src/async_handler.c
@@ -225,13 +210,10 @@ static void multiply_done(void *context, int success, char *error)
     // Assign the context
     ctx_t *ctx = context;
 
-    // Assign ctx->res to a local variable because the text() macro waits for 'res'
-    Res *res = ctx->res;
-
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        send_text(500, error);
+        send_text(ctx->res, 500, error);
     }
     else
     {
@@ -240,12 +222,11 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            ctx->input, ctx->final);
 
-        send_text(200, buf);
+        send_text(ctx->res, 200, buf);
     }
 
     // Ensure memory is always freed regardless of success/failure
-    free(ctx->req);
-    free(ctx->res);
+    destroy_res(ctx->res);
     free(ctx);
 }
 ```
@@ -263,7 +244,6 @@ In the end, the `async_handler.c` file should look like this:
 // Context for chained operations
 typedef struct
 {
-    Req *req;
     Res *res;
     long input;
     long intermediate;
@@ -280,7 +260,7 @@ static void multiply_done(void *context, int success, char *error);
 void calculate(Req *req, Res *res)
 {
     // Get the number from request params
-    const char *num_str = get_params("num");
+    const char *num_str = get_params(req, "num");
 
     // Convert it to a number
     long num = num_str ? strtol(num_str, NULL, 10) : 0;
@@ -289,27 +269,12 @@ void calculate(Req *req, Res *res)
     ctx_t *ctx = malloc(sizeof(*ctx));
     if (!ctx)
     {
-        send_text(500, "Memory allocation failed");
+        send_text(res, 500, "Memory allocation failed");
         return;
     }
 
-    // Copy Req and Res to heap
-    ctx->req = malloc(sizeof(*ctx->req));
-    ctx->res = malloc(sizeof(*ctx->res));
-
-    if (!ctx->req || !ctx->res)
-    {
-        send_text(500, "Memory allocation failed");
-        if (ctx->req)
-            free(ctx->req);
-        if (ctx->res)
-            free(ctx->res);
-        free(ctx);
-        return;
-    }
-
-    *ctx->req = *req;
-    *ctx->res = *res;
+    // Copy Res to heap
+    ctx->res = copy_res(res);
     ctx->input = num;
     ctx->intermediate = 0;
     ctx->final = 0;
@@ -334,7 +299,7 @@ static void add_done(void *context, int success, char *error)
 {
     if (success)
     {
-        then(context, multiply_work, multiply_done);
+        then(context, success, error, multiply_work, multiply_done);
         // if success, "then" calls the next task named "multiply"
     }
     else
@@ -342,15 +307,11 @@ static void add_done(void *context, int success, char *error)
         // Assign the context
         ctx_t *ctx = context;
 
-        // Assign ctx->res to a local variable because the text() macro waits for 'res'
-        Res *res = ctx->res;
-
         // Send a response
-        send_text(500, error);
+        send_text(ctx->res, 500, error);
 
         // Free the allocated memories
-        free(ctx->req);
-        free(ctx->res);
+        destroy_res(ctx->res);
         free(ctx);
     }
 }
@@ -381,13 +342,10 @@ static void multiply_done(void *context, int success, char *error)
     // Assign the context
     ctx_t *ctx = context;
 
-    // Assign ctx->res to a local variable because the text() macro waits for 'res'
-    Res *res = ctx->res;
-
     // If "multiply_work()" function returns an error
     if (!success)
     {
-        send_text(500, error);
+        send_text(ctx->res, 500, error);
     }
     else
     {
@@ -396,12 +354,11 @@ static void multiply_done(void *context, int success, char *error)
                            "((%ld) + 10) * 5 = %ld",
                            ctx->input, ctx->final);
 
-        send_text(200, buf);
+        send_text(ctx->res, 200, buf);
     }
 
     // Ensure memory is always freed regardless of success/failure
-    free(ctx->req);
-    free(ctx->res);
+    destroy_res(ctx->res);
     free(ctx);
 }
 ```
@@ -457,6 +414,31 @@ If go to `http://localhost:3000/calculate/10000` now and we'll receive:
 Intermediate too large to multiply
 ```
 
+### Note
+
+> **Why We Don't Basically Use `malloc` To Copy The `Req` and `Res` Objects?**
+>
+> Because the `Res` object has headers array. If we use `malloc`, it will shallow copy and causes the dangling pointer. Therefore we need to deep copy it using `copy_res()` and free it using `destroy_res()`. If we need to call `get_params()`, `get_query()` or `get_headers()` out of the handler, we also need to deep copy the `Req` object using `copy_req()` and free it using `destroy_req()`.
+
+**Shallow copy (DON'T DO THIS):**
+```c
+ctx_t *ctx = calloc(1, sizeof(ctx_t));
+
+ctx->req = malloc(sizeof(*ctx->req));
+ctx->res = malloc(sizeof(*ctx->res));
+
+*ctx->req = *req;
+*ctx->res = *res;
+```
+
+**Deep Copy (DO THIS):**
+```c
+ctx_t *ctx = calloc(1, sizeof(ctx_t));
+
+ctx->req = copy_req(req);
+ctx->res = copy_res(res);
+```
+
 ## Async Postgres Queries
 
 For asynchronous database queries, Ecewo supports [libpq](https://www.postgresql.org/docs/current/libpq.html) — the official PostgreSQL client library, which includes asynchronous support.
@@ -504,7 +486,7 @@ void get_all_users(Req *req, Res *res)
     {
         fprintf(stderr, "DB select failed: %s", PQerrorMessage(db));
         PQclear(resPQ);
-        send_text(500, "DB select failed");
+        send_text(res, 500, "DB select failed");
         return;
     }
 
@@ -528,14 +510,14 @@ void get_all_users(Req *req, Res *res)
     PQclear(resPQ);
 
     char *json_string = cJSON_PrintUnformatted(json_array);
-    send_json(200, json_string);
+    send_json(res, 200, json_string);
 
     cJSON_Delete(json_array);
     free(json_string);
 }
 ```
 
-This is really short, but the code is blocking. We can make it asynchronous like that:
+This is really short, but the code is blocking synchronous. We can make it non-blocking asynchronous like that:
 
 ```c
 #include "handlers.h"
@@ -545,7 +527,6 @@ This is really short, but the code is blocking. We can make it asynchronous like
 // Callback structure to hold request/response context
 typedef struct
 {
-    Req *req;
     Res *res;
 } ctx_t;
 
@@ -555,9 +536,7 @@ static void free_ctx(ctx_t *ctx)
         return;
 
     if (ctx->req)
-        free(ctx->req);
-    if (ctx->res)
-        free(ctx->res);
+        destroy_res(ctx->res);
 
     free(ctx);
 }
@@ -573,29 +552,18 @@ void get_all_users_async(Req *req, Res *res)
     ctx_t *ctx = calloc(1, sizeof(ctx_t));
     if (!ctx)
     {
-        send_text(500, "Memory allocation failed");
+        send_text(res, 500, "Memory allocation failed");
         return;
     }
 
-    ctx->req = malloc(sizeof(*ctx->req));
-    ctx->res = malloc(sizeof(*ctx->res));
-
-    if (!ctx->req || !ctx->res)
-    {
-        send_text(500, "Memory allocation failed");
-        free_ctx(ctx);
-        return;
-    }
-
-    // Copy necessary base fields (such as client_socket) from the original request and response
-    *ctx->req = *req;
-    *ctx->res = *res;
+    // Deep copy the Res object
+    ctx->res = copy_res(res);
 
     // Create async PostgreSQL context
     pg_async_t *pg = pquv_create(db, ctx);
     if (!pg)
     {
-        send_text(500, "Failed to create async context");
+        send_text(res, 500, "Failed to create async context");
         free(ctx);
         return;
     }
@@ -604,7 +572,7 @@ void get_all_users_async(Req *req, Res *res)
     int result = pquv_queue(pg, sql, 0, NULL, users_result_callback, ctx);
     if (result != 0)
     {
-        send_text(500, "Failed to queue query");
+        send_text(res, 500, "Failed to queue query");
         free(ctx);
         return;
     }
@@ -614,7 +582,7 @@ void get_all_users_async(Req *req, Res *res)
     if (result != 0)
     {
         printf("get_all_users_async: Failed to execute query\n");
-        send_text(500, "Failed to execute query");
+        send_text(res, 500, "Failed to execute query");
         free(ctx);
         return;
     }
@@ -635,14 +603,12 @@ static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
     }
 
 
-    Res *res = ctx->res;
-
     // Check result status
     ExecStatusType status = PQresultStatus(result);
     if (status != PGRES_TUPLES_OK)
     {
         printf("Query failed: %s\n", PQresultErrorMessage(result));
-        send_text(500, "DB select failed");
+        send_text(ctx->res, 500, "DB select failed");
         free(ctx);
         return;
     }
@@ -665,7 +631,7 @@ static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
     }
 
     char *json_string = cJSON_PrintUnformatted(json_array);
-    send_json(200, json_string);
+    send_json(ctx->res, 200, json_string);
 
     // Cleanup
     cJSON_Delete(json_array);

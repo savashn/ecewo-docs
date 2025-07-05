@@ -7,7 +7,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 ```c
 int count = 1;
+
 example_context_t *example_ctx = malloc(sizeof(example_context_t));
+
 example_ctx->example_data = count;
-set_context(req, example_ctx, sizeof(example_context_t), example_cleanup_fn);
+
+set_context(example_ctx, sizeof(example_context_t), example_cleanup_fn);
 ```
+
+See the [Passing Data Chapter](/docs/middleware/#passing-data) for more information.

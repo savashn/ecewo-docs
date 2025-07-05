@@ -10,6 +10,6 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 void hello_world(Req *req, Res *res)
 {
-    send_text(200, "hello world!");
+    send_text(res, 200, "hello world!");
 }
 ```

@@ -14,11 +14,11 @@ void get_cookie_handler(Req *req, Res *res)
 
   if (!theme)
   {
-    send_text(404, "Cookies not found");
+    send_text(res, 404, "Cookies not found");
     return;
   }
 
-  send_text(200, theme);
+  send_text(res, 200, theme);
   free(theme);
 }
 ```
