@@ -6,6 +6,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 `get_req()` is the main function to get the parts of request.
 
 ```c
+const char *get_req(const request_t *request, const char *key)
+```
+
+Example usage:
+
+```c
 #include "ecewo.h"
 
 void hello_world(Req *req, Res *res)

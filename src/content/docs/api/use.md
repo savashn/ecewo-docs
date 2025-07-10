@@ -3,7 +3,13 @@ title: use()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`use()` is for registering a route-specific middleware.
+`use()` is aa macro for registering a route-specific middleware.
+
+```c
+#define use(...) (MiddlewareArray){(MiddlewareHandler[]){__VA_ARGS__}, sizeof((MiddlewareHandler[]){__VA_ARGS__}) / sizeof(MiddlewareHandler), 1}
+```
+
+Example usage:
 
 ```c
     get("/", use(some_middleware), some_handler);

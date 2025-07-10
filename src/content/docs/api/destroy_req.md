@@ -6,6 +6,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 `destroy_req()` is using when the `Req` object has been deep copied. It is necessary to free the memory of the deep copy of `Req` object, especially for the async operations.
 
 ```c
+void destroy_req(Req *req);
+```
+
+Example usage:
+
+```c
 typedef struct
 {
     Res *res;

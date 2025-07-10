@@ -6,6 +6,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 `copy_res()` is using for deep copying the `Res` object. It is necessary especially for async operations.
 
 ```c
+Res *copy_res(const Res *original);
+```
+
+Example usage:
+
+```c
 typedef struct
 {
     Res *res;

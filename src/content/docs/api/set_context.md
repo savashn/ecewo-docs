@@ -6,6 +6,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 `set_context()` is for setting the data to pass through the middleware chain. It takes 4 parameters.
 
 ```c
+void set_context(Req *req, void *data, size_t size, void (*cleanup)(void *));
+```
+
+Example usage:
+
+```c
 int count = 1;
 
 example_context_t *example_ctx = malloc(sizeof(example_context_t));

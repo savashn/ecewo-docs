@@ -3,7 +3,7 @@ title: set_header()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`set_cookie()` is for setting a custom header to the response headers.
+`set_header()` is for setting a custom header to the response headers.
 
 ```c
 void hello_world(Req *req, Res *res)

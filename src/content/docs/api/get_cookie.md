@@ -3,14 +3,18 @@ title: get_cookie()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`get_cookie()` is a macro for getting the `Cookie` from request headers.
+`get_cookie()` is for getting the `Cookie` from request headers. It takes two parameters: The `Req` object and a Cookie name.
+
+```c
+char *get_cookie(Req *req, const char *name);
+```
 
 ```c
 #include "ecewo.h"
 
 void get_cookie_handler(Req *req, Res *res)
 {
-  char *theme = get_cookie("theme");
+  char *theme = get_cookie(req, "theme");
 
   if (!theme)
   {

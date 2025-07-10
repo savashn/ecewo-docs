@@ -3,7 +3,16 @@ title: send_html()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`send_html()` is a macro for sending `text/html` responses easily. It runs [reply()](/api/reply) function under the hood.
+`send_html()` is for sending `text/html` responses easily. It runs [reply()](/api/reply) function under the hood.
+
+```c
+static inline void send_html(Res *res, int status, const char *body)
+{
+    reply(res, status, "text/html", body, strlen(body));
+}
+```
+
+Example usage:
 
 ```c
 #include "ecewo.h"

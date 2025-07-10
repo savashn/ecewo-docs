@@ -6,6 +6,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 `copy_req()` is using for deep copying the `Req` object. It is necessary especially for async operations.
 
 ```c
+Req *copy_req(const Req *original);
+```
+
+Example usage:
+
+```c
 typedef struct
 {
     Res *res;

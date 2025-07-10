@@ -6,6 +6,12 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 `destroy_res()` is using when the `Res` object has been deep copied. It is necessary to free the memory of the deep copy of `Res` object, especially for the async operations.
 
 ```c
+void destroy_res(Res *res);
+```
+
+Example usage:
+
+```c
 typedef struct
 {
     Res *res;

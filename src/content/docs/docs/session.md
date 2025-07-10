@@ -12,7 +12,7 @@ Ecewo offers session management feature for authentication and authorization. Fi
 - `get_session()` to get the session from request
 - `free_session()` to delete the session only from memory
 - `send_session()` to send the session to the client as cookie
-- `delete_sesion()` to delete the session both from the client and the memory
+- `destroy_sesion()` to delete the session both from the client and the memory
 - `print_sessions()` to print all the active sessions
 
 With the power of these functions, we can easily manage the authentication and authorization. Refer to the [README.md](https://github.com/savashn/ecewo-session/blob/main/README.md) file in the original repository for more detailed explanations.
@@ -74,7 +74,17 @@ void handle_login(Req *req, Res *res)
     set_session(session, "theme", "dark");
 
     // Send the session as cookie for 1 hour
-    send_session(res, session);
+    // max_age is not required because
+    // it will be the integer that
+    // we pass to create_session
+    cookie_options_t cookie_options = {
+        .path = "/",
+        .same_site = "Lax",
+        .http_only = true,
+        .secure = true,
+    };
+
+    send_session(res, session, &cookie_options);
 
     printf("Session ID: %s\n", sid);
     printf("Session JSON: %s\n", sess->data);
@@ -132,7 +142,7 @@ We also write a logout handler to use after login. Let's add these parts:
 void handle_logout(Req *req, Res *res)
 {
     // First, check if the user has session
-    Session *session = get_session(&req->headers);
+    Session *session = get_session(req);
 
     if (!session)
     {
@@ -140,7 +150,16 @@ void handle_logout(Req *req, Res *res)
     }
     else
     {
-        delete_session(res, session);
+        // The cookie_options should be the same
+        // as what we use in the login handler
+        cookie_options_t cookie_options = {
+            .path = "/",
+            .same_site = "Lax",
+            .http_only = true,
+            .secure = true,
+        };
+
+        destroy_session(res, session, &cookie_options);
         send_text(res, 302, "Logged out");
     }
 }
@@ -176,7 +195,7 @@ You have to login first
 
 > **WHAT'S THE DIFFERENCE BETWEEN `get_cookie()` and `get_session()`?**
 >
-> `get_session()` is running `get_cookie()` under the hood, but it's specialized to extract the `session_id` from the `Cookie` header. While you need to manually free the memory returned by `get_cookie()`, you don't need to do that with `get_session()` — it handles memory management internally.
+> `get_session()` is running `get_cookie()` under the hood, but it's specialized to extract the `session` from the `Cookie` header. While you need to manually free the memory returned by `get_cookie()`, you don't need to do that with `get_session()` — it handles memory management internally.
 
 ## Getting Session Data
 
@@ -191,7 +210,7 @@ We added 3 data to the session in the `Login` handler: `name`, `username` and `t
 
 void handle_session_data(Req *req, Res *res)
 {
-    Session *user_session = get_session(&req->headers);
+    Session *user_session = get_session(req);
 
     if (!user_session)
     {

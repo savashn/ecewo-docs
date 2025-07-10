@@ -3,13 +3,16 @@ title: send_cbor()
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-`send_cbor()` is a macro for sending `application/cbor` responses easily. It runs [reply()](/api/reply) function under the hood.
+`send_cbor()` is for sending `application/cbor` responses easily. It runs [reply()](/api/reply) function under the hood.
 
-You need to pass these parameters:
-- The Res object
-- Status code
-- CBOR response body
-- Length of the CBOR response body
+```c
+static inline void send_cbor(Res *res, int status, const char *body, size_t body_len)
+{
+    reply(res, status, "application/cbor", body, body_len);
+}
+```
+
+Example usage:
 
 ```c
 #include "ecewo.h"
