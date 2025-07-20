@@ -54,12 +54,17 @@ void hello_world(Req *req, Res *res)
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     get("/", hello_world);
+
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -137,12 +142,17 @@ void handle_user(Req *req, Res *res)
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     post("/user", handle_user);
+
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```

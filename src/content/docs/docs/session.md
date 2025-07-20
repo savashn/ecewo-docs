@@ -99,6 +99,11 @@ void handle_login(Req *req, Res *res)
   cJSON_Delete(json);
 }
 
+void destroy_app() {
+    reset_router();
+    reset_sessions();
+}
+
 int main()
 {
     init_router();
@@ -106,11 +111,8 @@ int main()
 
     post("/login", handle_login);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-
-    reset_sessions();
-    reset_router();
-
     return 0;
 }
 ```
@@ -164,6 +166,11 @@ void handle_logout(Req *req, Res *res)
     }
 }
 
+void destroy_app() {
+    reset_router();
+    reset_sessions();
+}
+
 int main()
 {
     init_router();
@@ -172,11 +179,8 @@ int main()
     post("/login", handle_login);
     get("/logout", handle_logout); // We also added it
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-
-    reset_sessions();
-    reset_router();
-
     return 0;
 }
 ```
@@ -244,6 +248,11 @@ void handle_session_data(Req *req, Res *res)
     cJSON_Delete(session_data);
 }
 
+void destroy_app() {
+    reset_router();
+    reset_sessions();
+}
+
 int main()
 {
     init_router();
@@ -253,11 +262,8 @@ int main()
     post("/login", handle_login);
     post("/logout", handle_logout);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-
-    reset_sessions();
-    reset_router();
-    
     return 0;
 }
 ```
@@ -364,6 +370,11 @@ void handle_protected(Req *req, Res *res)
     send_text(res, 200, "Welcome to the protected area!");
 }
 
+void destroy_app() {
+    reset_router();
+    reset_sessions();
+}
+
 int main()
 {
     init_router();
@@ -374,11 +385,8 @@ int main()
     post("/login", handle_login);
     post("/logout", handle_logout);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-
-    reset_sessions();
-    reset_router();
-
     return 0;
 }
 ```
@@ -458,6 +466,11 @@ void edit_profile(Req *req, Res *res)
   cJSON_Delete(session_data);
 }
 
+void destroy_app() {
+    reset_router();
+    reset_sessions();
+}
+
 int main()
 {
     init_router();
@@ -469,11 +482,8 @@ int main()
     post("/login", handle_login);
     post("/logout", handle_logout);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-
-    reset_sessions();
-    reset_router();
-
     return 0;
 }
 ```
@@ -505,12 +515,12 @@ When we logged in as johndoe and send a request again, here is what we will get:
 
 > **NOTE 1**
 >
->It's not safe to insert the password to the database without encryption. You should use a library to encrypt the user password before inserting.
+> It's not safe to insert the password to the database without encryption. You should use a library to encrypt the user password before inserting.
 
 > **NOTE 2**
 >
->In these examples, session is stored in memory, but you can store them in the database if you prefer.
+> In these examples, session is stored in memory, but you can store them in the database if you prefer.
 >
->If you store them in the memory, you will use `free_session()` and `delete_session()` API for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
+> If you store them in the memory, you will use `free_session()` and `delete_session()` functions for rare operations like logout. Ecewo will free the expired sessions when a new session is created.
 >
->But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.
+> But if you prefer storing the sessions in a database, you may free the session from memory right after you create and insert it into the database.

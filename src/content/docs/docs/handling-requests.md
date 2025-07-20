@@ -21,12 +21,16 @@ void print_body(Req *req, Res *res)
     send_text(res, 200, "Success!");
 }
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     post("/print-body", print_body);
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -55,7 +59,7 @@ For more advanced usage; see [Using JSON](/docs/using-json) chapter.
 
 ## Request Params
 
-Let's take a specific user by params. We can access the params using the `get_params("slug");` API. Let's write a handler that gives us the "slug":
+Let's take a specific user by params. We can access the params using the `get_params("slug");` function. Let's write a handler that gives us the "slug":
 
 ```c
 // main.c
@@ -76,12 +80,16 @@ void send_params(Req *req, Res *res)
     send_text(res, 200, slug);
 }
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     get("/send-params/:slug", send_params);
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -112,12 +120,16 @@ void print_more_params(Req *req, Res *res)
     send_text(res, 200, "Success!");
 }
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     get("/print-more-params/:key/and/:value");
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -154,12 +166,16 @@ void print_query(Req *req, Res *res)
     send_text(res, 200, "Success!");
 }
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     get("/print-query", print_query);
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -172,8 +188,8 @@ Name: john Surname: doe
 
 ## Request Headers
 
-Just like `params` and `query`, we can also access request headers using the `get_headers("header");` API.
-Ecewo also provides different APIs for authorization and session-based authentication.
+Just like `params` and `query`, we can also access request headers using the `get_headers("header");` function.
+Ecewo also provides different functions for authorization and session-based authentication.
 However, if you simply want to access a specific item in `req->headers`, you can do so directly.
 
 Typically, a standard `GET` request with `POSTMAN` have some headers like:
@@ -210,12 +226,16 @@ void get_user_agent(Req *req, Res *res)
     send_text(res, 200, user_agent);
 }
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     get("/header", get_user_agent);
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```

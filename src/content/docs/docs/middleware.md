@@ -95,6 +95,12 @@ We have a `use()` macro to call the middleware before the handler.
 #include "handlers.h"
 #include "middlewares.h"
 
+void destroy_app()
+{
+    reset_middleware(); // Free the allocated middleware memory before the router
+    reset_router();
+}
+
 int main()
 {
     init_router();
@@ -102,9 +108,8 @@ int main()
     get("/user", use(auth), users_handler);  // Runs auth middleware first, then the handler
     get("/admin", use(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
 
+    shutdown_hook(destroy_app);
     ecewo(3000);  // Start the server on port 3000
-    reset_middleware();  // Free the allocated middleware memory
-    reset_router();
     return 0;
 }
 ```
@@ -145,6 +150,12 @@ int simple_logger(Req *req, Res *res, Chain *chain)
 #include "handlers.h"
 #include "middlewares.h"
 
+void destroy_app()
+{
+    reset_middleware();
+    reset_router();
+}
+
 int main()
 {
     init_router();
@@ -155,10 +166,8 @@ int main()
     get("/user", use(auth), users_handler);
     get("/admin", use(auth, admin), admin_handler);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-
-    reset_middleware();
-    reset_router();
     return 0;
 }
 ```
@@ -263,12 +272,21 @@ void welcome_handler(Req *req, Res *res)
     send_text(res, 200, response);
 }
 
+
+void destroy_app()
+{
+    reset_middleware();
+    reset_router();
+}
+
 int main()
 {
     init_router();
+    
     get("/welcome", use(welcome_middleware), welcome_handler);
+
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```

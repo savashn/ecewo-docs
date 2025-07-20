@@ -60,14 +60,18 @@ void hello_world_cbor(Req *req, Res *res)
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+    reset_router();
+}
+
 int main()
 {
     init_router();
 
     get("/cbor", hello_world_cbor);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -195,6 +199,10 @@ cleanup:
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+    reset_router();
+}
+
 int main()
 {
     init_router();
@@ -202,8 +210,8 @@ int main()
     post("/user-cbor", handle_user_cbor);   // Add this
     get("/cbor", hello_world_cbor);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```

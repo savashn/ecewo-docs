@@ -31,6 +31,11 @@ void hello_world(Req *req, Res *res)
     send_text(res, 200, "hello world");
 }
 
+void destroy_app() {
+    reset_cors();  // Free the memory that allocated by CORS
+    reset_router();
+}
+
 int main()
 {
     cors_t my_cors = {
@@ -47,9 +52,8 @@ int main()
 
     get("/", hello_world);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
-    reset_cors();  // Free the memory that allocated by CORS
     return 0;
 }
 ```

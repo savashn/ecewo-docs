@@ -42,33 +42,39 @@ target_link_libraries(server PRIVATE ecewo)
 ```c
 // main.c
 
-#include "server.h"    // To start the server via ecewo();
-#include "ecewo.h"     // Our main API
+#include "server.h"  // To start the server via ecewo()
+#include "ecewo.h"   // To use the main API
 
+// HTTP request handler for root endpoint
 void hello_world(Req *req, Res *res) {
-    send_text(res, 200, "Hello, World!");
+   send_text(res, 200, "Hello, World!");  // Send plain text response
 }
 
+// Cleanup function called during graceful shutdown
+void destroy_app() {
+   reset_router();  // Free router memory and routes
+}
+
+// Server entry point
 int main() {
-    init_router();
-    get("/", hello_world);
-    ecewo(3000);
-    reset_router();
-    return 0;
+   init_router();               // Initialize HTTP router system
+   get("/", hello_world);       // Register GET route for root path
+   shutdown_hook(destroy_app);  // Register cleanup function for graceful shutdown
+   ecewo(3000);                 // Start server on port 3000 (blocking call)
+   return 0;                    // Program exits after server shutdown
 }
 ```
 
-This is defining handler. We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, `send` and many others— used for writing handlers and routers.
+We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, `send` and many others— used for writing handlers and routers.
 
-And this is our handler. We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `send_text()` is a macro for sending `text/plain` responses to the client.
+We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `send_text()` is a function for sending `text/plain` responses to the client.
 
 When we are done with the handler, we need to send a response to the client using one of the following functions:
-- [send_text()](/api/send_text/) is for `text/plain` responses,
-- [send_html()](/api/send_html/) is for `html/plain` responses,
-- [send_json()](/api/send_json/) is for `application/json` responses,
-- [send_cbor()](/api/send_cbor/) is for `application/cbor` responses.
-
-Basically, they take 3 parameters: the response object, a status code and a response body — except for `send_cbor()`, which takes four: the response object, a status code, a response body, and the length of the response body.
+- [send_text()](/api/send_text/) is for `text/plain` responses. It takes *3* parameters: **response object, status code, and response body**.
+- [send_html()](/api/send_html/) is for `html/plain` responses. It takes *3* parameters: **response object, status code, and response body**.
+- [send_json()](/api/send_json/) is for `application/json` responses. It takes *3* parameters: **response object, status code, and response body**.
+- [send_cbor()](/api/send_cbor/) is for `application/cbor` responses. It takes *4* parameters: **response object, status code, response body, and the length of the response body**.
+- [reply()](/api/reply) is for general responses. It takes *5* parameters: **response object, status code, content-type, response body, and the length of the response body**.
 
 The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a `PORT` parameter of type `unsigned short`.
 
@@ -85,14 +91,8 @@ They takes two parameters: First one is the path and second one is the handler.
 >
 > We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
 
-> **NOTE:**
->
->  We have to use double quots `""` to define the route path every time. If we accidentally write single quots `''`, we'll get an error.
 
-```
-get("/", hello_world); // CORRECT
-get('/', hello_world); // INCORRECT
-```
+Before calling `ecewo()`, `shutdown_hook()` must always be invoked to clean up server resources such as the router during shutdown.
 
 Now we can run the following commands in the terminal to build our server:
 

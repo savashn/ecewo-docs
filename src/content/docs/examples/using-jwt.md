@@ -27,16 +27,20 @@ void decoding_handler(Req *req, Res *res);
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+    reset_router();
+}
+
 int main()
 {
-  init_router();
+    init_router();
 
-  get("/decode", decoding_handler);
-  get("/encode", encoding_handler);
+    get("/decode", decoding_handler);
+    get("/encode", encoding_handler);
 
-  ecewo(3000);
-  reset_router();
-  return 0;
+    shutdown_hook(destroy_app);
+    ecewo(3000);
+    return 0;
 }
 ```
 

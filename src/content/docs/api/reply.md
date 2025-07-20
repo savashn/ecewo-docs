@@ -16,9 +16,9 @@ Example usage:
 
 void hello_world(Req *req, Res *res)
 {
-    const char *response = "hello world!"
+    const char *response = "Hello, World!"
     reply(res, 200, "text/plain", response, strlen(response));
 }
 ```
 
-You can use this function for responses that are not suitable for `send_text()`, `send_html()`, `send_json()`, `send_cbor()` functions.
+You can use this function for responses that are not suitable for `send_text()`, `send_html()`, `send_json()`, and `send_cbor()` functions. They all use `reply()` under the hood.

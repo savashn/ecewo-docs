@@ -386,12 +386,16 @@ void calculate(Req *req, Res *res); // Our entry point
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
     get("/calculate/:num", calculate);
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```
@@ -466,6 +470,172 @@ target_link_libraries(server PRIVATE
 )
 ```
 
+First of all, we need to configure and connect to our Postgres.
+
+```c
+// db.h
+
+#ifndef DB_H
+#define DB_H
+
+#include <libpq-fe.h>
+
+extern PGconn *db;
+
+int init_db(void);
+void close_db(void);
+
+#endif
+```
+
+```c
+// db.c
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "dotenv.h"
+#include "db.h"
+
+PGconn *db = NULL;
+
+static int create_tables(void)
+{
+    const char *query = 
+        "CREATE TABLE IF NOT EXISTS users ("
+        "  id SERIAL PRIMARY KEY, "
+        "  name TEXT NOT NULL, "
+        "  username TEXT UNIQUE NOT NULL, "
+        "  password TEXT NOT NULL"
+        ");";
+
+    PGresult *res = PQexec(db, query);
+    ExecStatusType status = PQresultStatus(res);
+    
+    if (status != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Table creation failed: %s\n", PQerrorMessage(db));
+        PQclear(res);
+        return 1;
+    }
+    
+    PQclear(res);
+    printf("Users table created or already exist.\n");
+    return 0;
+}
+
+int init_db(void)
+{
+    // We need to load our .env file in main.c
+    const char *db_host = getenv("DB_HOST");
+    const char *db_port = getenv("DB_PORT");
+    const char *db_name = getenv("DB_NAME");
+    const char *db_user = getenv("DB_USER");
+    const char *db_password = getenv("DB_PASSWORD");
+
+    if (!db_host || !db_port || !db_name || !db_user || !db_password) {
+        fprintf(stderr, "Missing required environment variables\n");
+        return 1;
+    }
+
+    static char conninfo[512];
+    snprintf(conninfo, sizeof(conninfo),
+             "host=%s port=%s dbname=%s user=%s password=%s",
+             db_host, db_port, db_name, db_user, db_password);
+
+    db = PQconnectdb(conninfo);
+    if (PQstatus(db) != CONNECTION_OK)
+    {
+        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(db));
+        PQfinish(db);
+        db = NULL;
+        return 1;
+    }
+
+    printf("Database connection successful.\n");
+
+    if (PQsetnonblocking(db, 1) != 0)
+    { // for non-blocking async I/O
+        fprintf(stderr, "Failed to set async connection to nonblocking mode\n");
+        PQfinish(db);
+        db = NULL;
+        return 1;
+    }
+
+    printf("Async database connection successful.\n");
+
+    if (create_tables() != 0)
+    {
+        printf("Tables cannot be created\n");
+        close_db();
+        return 1;
+    }
+
+    return 0;
+}
+
+void close_db(void)
+{
+    if (db)
+    {
+        PQfinish(db);
+        db = NULL;
+        printf("Database connection closed.\n");
+    }
+}
+```
+
+```c
+// main.c
+
+#include "server.h"
+#include "handlers.h"
+#include "dotenv.h"
+#include "db.h"
+
+void shutdown_my_app()
+{
+    close_db();
+    reset_router();
+}
+
+int main()
+{
+    env_load("..", false);
+
+    const char *port = getenv("PORT");
+    const unsigned short PORT = (unsigned short)atoi(port);
+
+    init_router();
+
+    if (init_db() != 0)
+    {
+        fprintf(stderr, "Database initialization failed.\n");
+        return 1;
+    }
+
+    get("/all-users", get_all_users); // We access that from handlers.h
+
+    shutdown_hook(shutdown_my_app);
+    ecewo(PORT);
+    return 0;
+}
+```
+
+```c
+// handlers.h
+
+#ifndef HANDLERS_H
+#define HANDLERS_H
+
+#include "ecewo.h"
+
+void get_all_users(Req *req, Res *res);
+
+#endif
+```
+
+Now we can write our first async database operation, which is `get_all_users()`.
+
 ### Usage
 
 `pquv.h` is providing three functions:
@@ -477,6 +647,8 @@ target_link_libraries(server PRIVATE
 Here is an example of synchronous querying: 
 
 ```c
+// get_all_users.c
+
 void get_all_users(Req *req, Res *res)
 {
     const char *sql = "SELECT id, name, username FROM users;";
@@ -520,9 +692,11 @@ void get_all_users(Req *req, Res *res)
 This is really short, but the code is blocking synchronous. We can make it non-blocking asynchronous like that:
 
 ```c
+// get_all_users.c
+
 #include "handlers.h"
 #include "cJSON.h"
-#include "pq.h"
+#include "pquv.h"
 
 // Callback structure to hold request/response context
 typedef struct
@@ -641,7 +815,7 @@ static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
     printf("users_result_callback: Response sent successfully\n");
 
     // If you want to continue the querying,
-    // you shuld basicly write a new `pquv_queue()` here
+    // you shuld basicaly write a new `pquv_queue()` here
     // it will queue the new query immediately
 }
 ```

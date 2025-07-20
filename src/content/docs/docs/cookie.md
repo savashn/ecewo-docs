@@ -28,6 +28,10 @@ Let's create three new routes. One for setting a cookie, one for getting the coo
 #include "server.h"
 #include "handlers.h"
 
+void destroy_app() {
+   reset_router();
+}
+
 int main()
 {
     init_router();
@@ -36,8 +40,8 @@ int main()
     get("/get-cookie", get_cookie_handler);
     get("/all-cookies", get_all_cookies);
 
+    shutdown_hook(destroy_app);
     ecewo(3000);
-    reset_router();
     return 0;
 }
 ```

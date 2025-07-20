@@ -15,21 +15,25 @@ hero:
       link: https://github.com/savashn/ecewo
       icon: seti:github
       variant: secondary
+      attrs:
+        target: _blank
     - text: See Example
       link: https://github.com/savashn/ecewo-Example
       icon: external
       variant: secondary
+      attrs:
+        target: _blank
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid stagger>
-	<Card title="Async Support" icon="seti:c">
-		Ecewo is built on [libuv](https://github.com/libuv/libuv), a native C library designed for non-blocking asynchronous I/O operations and originally developed for Node.js.
-	</Card>
-
   <Card title="Simple As Node.js" icon="node">
     Ecewo is inspired by the simplicity of Express.js. So it's really simple, but in a C kind of way.
+	</Card>
+
+	<Card title="Asynchronous Support" icon="seti:c">
+		Ecewo is built on [libuv](https://github.com/libuv/libuv), a native C library designed for non-blocking asynchronous I/O operations and originally developed for Node.js.
 	</Card>
 
 	<Card title="JSON and CBOR Support" icon="seti:json">
@@ -37,12 +41,16 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 	</Card>
 
   <Card title="Middleware Structure" icon="puzzle">
-		Offered built-in route-specific and global middlewares.
+		Provides built-in support for advanced route-level and global middleware, similar to Express.js.
 	</Card>
 
   <Card title="Authentication Mechanism" icon="seti:lock">
-		You can easily do authentication and authorization using the built-in cookie and session management plugin.
+		You can easily do authentication and authorization using the built-in cookie and [ecewo-session](https://github.com/savashn/ecewo-session).
 	</Card>
+
+  <Card title="Asynchronous Postgres Support" icon="seti:db">
+    It's supported to run asynchronous Postgres queries with [pquv](https://github.com/savashn/pquv), a library that integrates [libpq](https://www.postgresql.org/docs/current/libpq.html) with [libuv](https://libuv.org/) to simplify running asynchronous Postgres queries in libuv-based projects.
+  </Card>
 
 	<Card title="Read The Docs" icon="open-book">
 		Start from [Introduction](/docs/introduction) page to read the documentation.
@@ -66,6 +74,6 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
   <br /><br />
 
-  <p style={{fontSize: '2rem'}}>v0.30</p>
+  <p style={{fontSize: '2rem'}}>v0.31</p>
   <div>Copyright 2025 &copy; <a href="https://github.com/savashn/ecewo">Ecewo</a>. Licensed under <a href="https://github.com/savashn/ecewo/blob/main/LICENSE">MIT</a>.</div>
 </div>
