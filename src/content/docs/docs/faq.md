@@ -5,7 +5,7 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 ## Is *Ecewo* Production Ready?
 
-Ecewo is a **hobby project** that I'm developing to improve my programming skills. So it might not be production-ready yet, and it doesn't have to be. However, I'm doing my best.
+Ecewo is a **hobby project** that I'm developing to improve my programming skills and have fun. So it might not be production-ready yet, and it doesn't have to be.
 
 ## What Am I Trying To Do?
 

@@ -5,14 +5,10 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 `use()` is aa macro for registering a route-specific middleware.
 
-```c
-#define use(...) (MiddlewareArray){(MiddlewareHandler[]){__VA_ARGS__}, sizeof((MiddlewareHandler[]){__VA_ARGS__}) / sizeof(MiddlewareHandler), 1}
-```
-
 Example usage:
 
 ```c
-    get("/", use(some_middleware), some_handler);
+    get("/", use(first_middleware, second_middleware), handler);
 ```
 
-It's necessary to call `reset_middleware()` at the end of the `int main()` function when a middleware is used.
+It's necessary to call `reset_middleware()` in the [shutdown_hook()](/api/shutdown_hook/) function when a middleware is used.

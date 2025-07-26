@@ -91,8 +91,9 @@ They takes two parameters: First one is the path and second one is the handler.
 >
 > We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
 
-
-Before calling `ecewo()`, `shutdown_hook()` must always be invoked to clean up server resources such as the router during shutdown.
+> **NOTE:**
+> 
+> Before calling `ecewo()`, [shutdown_hook()](/api/shutdown_hook/) must always be invoked to clean up server resources such as the router during shutdown.
 
 Now we can run the following commands in the terminal to build our server:
 
@@ -112,7 +113,6 @@ Let's run it:
 When we ran the suitable command; we’ll see following informations if our server is ready:
 
 ```
-Ecewo [version]
 Server is running at: http://localhost:3000
 ```
 
