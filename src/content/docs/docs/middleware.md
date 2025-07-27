@@ -36,17 +36,17 @@ void admin_handler(Req *req, Res *res); // Accessible for admin
 
 void home_handler(Req *req, Res *res)
 {
-    send_text(res, 200, "Hello world!");
+    send_text(res, 200, "This is accessible for everyone");
 }
 
 void users_handler(Req *req, Res *res)
 {
-    send_text(res, 200, "User lists");
+    send_text(res, 200, "This is accessible for users only");
 }
 
 void admin_handler(Req *req, Res *res)
 {
-    send_text(res, 200, "Welcome to admin panel");
+    send_text(res, 200, "This is accessible for admin only");
 }
 ```
 
@@ -97,19 +97,19 @@ We have a `use()` macro to call the middleware before the handler.
 
 void destroy_app()
 {
-    reset_middleware(); // Free the allocated middleware memory before the router
     reset_router();
 }
 
 int main()
 {
     init_router();
+
     get("/", home_handler); // Works without middleware
     get("/user", use(auth), users_handler);  // Runs auth middleware first, then the handler
     get("/admin", use(auth, admin), admin_handler);  // Runs auth, then admin middleware, then the handler
 
     shutdown_hook(destroy_app);
-    ecewo(3000);  // Start the server on port 3000
+    ecewo(3000);
     return 0;
 }
 ```
@@ -152,7 +152,6 @@ int simple_logger(Req *req, Res *res, Chain *chain)
 
 void destroy_app()
 {
-    reset_middleware();
     reset_router();
 }
 
@@ -275,7 +274,6 @@ void welcome_handler(Req *req, Res *res)
 
 void destroy_app()
 {
-    reset_middleware();
     reset_router();
 }
 

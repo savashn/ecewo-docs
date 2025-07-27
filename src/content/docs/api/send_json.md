@@ -22,5 +22,3 @@ void hello_world(Req *req, Res *res)
     send_json(res, 200, "{ \"message\": \"hello world!\" }");
 }
 ```
-
-You can generate and parse JSON objects via built-in `cJSON`. See [Using JSON](/examples/using-json/) chapter.

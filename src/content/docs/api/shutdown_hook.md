@@ -18,7 +18,6 @@ void destroy_app()
 {
     close_db();
     reset_sessions();
-    reset_middleware();
     reset_router();
     reset_cors();
 }

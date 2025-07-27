@@ -20,7 +20,8 @@ export default defineConfig({
 					label: 'Guides',
 					items: [
 						{ label: 'Getting Started', slug: 'docs/getting-started' },
-						{ label: 'Handling Requests', slug: 'docs/handling-requests' },
+						{ label: 'Defining Routes', slug: 'docs/defining-routes' },
+						{ label: 'Route Handlers', slug: 'docs/route-handlers' },
 						{ label: 'Cookie', slug: 'docs/cookie' },
 						{ label: 'Middleware', slug: 'docs/middleware' },
 						{ label: 'Async Operations', slug: 'docs/async-operations' },

@@ -42,7 +42,7 @@ target_link_libraries(server PRIVATE ecewo)
 ```c
 // main.c
 
-#include "server.h"  // To start the server via ecewo()
+#include "server.h"  // To start and end the server
 #include "ecewo.h"   // To use the main API
 
 // HTTP request handler for root endpoint
@@ -59,43 +59,32 @@ void destroy_app() {
 int main() {
    init_router();               // Initialize HTTP router system
    get("/", hello_world);       // Register GET route for root path
+
    shutdown_hook(destroy_app);  // Register cleanup function for graceful shutdown
    ecewo(3000);                 // Start server on port 3000 (blocking call)
    return 0;                    // Program exits after server shutdown
 }
 ```
 
-We include `"ecewo.h"` header, which is the main module of our project. It provides many of various HTTP tools —such as `Req`, `Res`, `send` and many others— used for writing handlers and routers.
+We include two header files: `server.h` and `ecewo.h`. Let's explain this code step by step:
 
-We get the request via `Req *req` that we'll see more detailed in the next chapter. `Res *res` is our response header, we send it in every response. And `send_text()` is a function for sending `text/plain` responses to the client.
+- The `server.h` header provides the `ecewo()` function that starts the server, and `shutdown_hook()` function to free the memory of server. So we need `server.h` in `main.c` file only.
 
-When we are done with the handler, we need to send a response to the client using one of the following functions:
-- [send_text()](/api/send_text/) is for `text/plain` responses. It takes *3* parameters: **response object, status code, and response body**.
-- [send_html()](/api/send_html/) is for `html/plain` responses. It takes *3* parameters: **response object, status code, and response body**.
-- [send_json()](/api/send_json/) is for `application/json` responses. It takes *3* parameters: **response object, status code, and response body**.
-- [send_cbor()](/api/send_cbor/) is for `application/cbor` responses. It takes *4* parameters: **response object, status code, response body, and the length of the response body**.
-- [reply()](/api/reply) is for general responses. It takes *5* parameters: **response object, status code, content-type, response body, and the length of the response body**.
+- The`ecewo.h` header is the main module of our project. It provides many of various HTTP tools used for writing handlers and routers.
 
-The `server.h` header provides the `ecewo()` function that starts the server. `ecewo()` takes a `PORT` parameter of type `unsigned short`.
+- The `void hello_world()` function is a handler. We get the request via `Req *req` and send a plain text response with `Res *res`. We'll see request handling more detailed in the [Route Handlers](/docs/route-handlers) chapter.
 
-We can create our routers with these methods:
+- The `int main()` function is the entry point of our program. We need to initialize the router first, and then we are able to define our routes, which are explained in [Defining Routes](/docs/defining-route) chapter more detailed.
 
-- [get()](/api/get/)
-- [post()](/api/post/)
-- [put()](/api/put/)
-- [del()](/api/del/)
+- The `shutdown_hook()` is a function pointer that frees the server memory. Before calling `ecewo()`, [shutdown_hook()](/api/shutdown_hook/) must always be invoked to clean up server resources such as the router during shutdown.
 
-They takes two parameters: First one is the path and second one is the handler.
+- And `ecewo()` is the function that runs the server. It waits for a PORT, which is a `unsigned short` type of parameter.
 
 > **NOTE:**
 >
-> We have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
+> Just like in the Express.js, we have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
 
-> **NOTE:**
-> 
-> Before calling `ecewo()`, [shutdown_hook()](/api/shutdown_hook/) must always be invoked to clean up server resources such as the router during shutdown.
-
-Now we can run the following commands in the terminal to build our server:
+Let's run the following commands in the terminal to build our server:
 
 ```shell
 mkdir build && cd build && cmake .. && cmake --build .
@@ -116,4 +105,4 @@ When we ran the suitable command; we’ll see following informations if our serv
 Server is running at: http://localhost:3000
 ```
 
-Now if we go to `http://localhost:3000/` we'll see a basic `hello world!` text message.
+Now if we go to `http://localhost:3000/` we'll see a basic `Hello, World!` text message.

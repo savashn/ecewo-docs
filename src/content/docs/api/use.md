@@ -10,5 +10,3 @@ Example usage:
 ```c
     get("/", use(first_middleware, second_middleware), handler);
 ```
-
-It's necessary to call `reset_middleware()` in the [shutdown_hook()](/api/shutdown_hook/) function when a middleware is used.
