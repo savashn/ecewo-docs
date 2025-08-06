@@ -5,7 +5,21 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 We'll use [cJSON](https://github.com/DaveGamble/cJSON) to work with JSON objects in this example, but you can also use [jansson](https://github.com/akheron/jansson) if you prefer. For more information, refer to its official documentation.
 
-## Creating JSON
+## Installation
+
+### Using [Ecewo-CLI](https://github.com/savashn/ecewo-cli)
+
+```
+ecewo install cjson
+```
+
+### Manually
+
+Copy `cJSON.c` and `cJSON.h` files from the [cJSON repository](https://github.com/DaveGamble/cJSON), and paste them into `vendors/` folder. Make sure `cJSON.c` is part of the CMake build configuration.
+
+## Usage
+
+### Creating JSON
 
 Let's write our `hello world` example again, but this time it will send a JSON object instead of a plain text.
 
@@ -75,7 +89,7 @@ Now we can recompile and send a request to `http://localhost:3000/` again. We'll
 {"hello":"world"}
 ```
 
-## Parsing JSON
+### Parsing JSON
 
 This time, let's take a JSON and print it to console.
 

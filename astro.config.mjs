@@ -34,7 +34,6 @@ export default defineConfig({
 					items: [
 						{ label: 'Using JSON', slug: 'examples/using-json' },
 						{ label: 'Using Database', slug: 'examples/using-database' },
-						{ label: 'Using JWT', slug: 'examples/using-jwt' },
 						{ label: 'Environment Variables', slug: 'examples/environment-variables' },
 						{ label: 'Using CBOR', slug: 'examples/using-cbor' }
 					]

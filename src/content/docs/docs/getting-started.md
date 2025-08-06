@@ -22,9 +22,9 @@ include(FetchContent)
 
 # Fetch Ecewo from GitHub
 FetchContent_Declare(
-    ecewo
-    GIT_REPOSITORY https://github.com/savashn/ecewo.git
-    GIT_TAG main
+   ecewo
+   GIT_REPOSITORY https://github.com/savashn/ecewo.git
+   GIT_TAG main # alternatively, use a version tag like v1.0.0
 )
 
 # Make Ecewo available
@@ -32,7 +32,7 @@ FetchContent_MakeAvailable(ecewo)
 
 # Create the executable
 add_executable(server
-    main.c
+   main.c
 )
 
 # Link Ecewo
@@ -59,7 +59,6 @@ void destroy_app() {
 int main() {
    init_router();               // Initialize HTTP router system
    get("/", hello_world);       // Register GET route for root path
-
    shutdown_hook(destroy_app);  // Register cleanup function for graceful shutdown
    ecewo(3000);                 // Start server on port 3000 (blocking call)
    return 0;                    // Program exits after server shutdown
@@ -106,3 +105,7 @@ Server is running at: http://localhost:3000
 ```
 
 Now if we go to `http://localhost:3000/` we'll see a basic `Hello, World!` text message.
+
+## Ecewo-CLI (optional)
+
+We can make our project configurations more easily via [Ecewo-CLI](https://github.com/savashn/ecewo-cli). It's using for creating and building projects easily, but more importantly, it makes easier to install some necessary libraries. Refer to its repository for usage.

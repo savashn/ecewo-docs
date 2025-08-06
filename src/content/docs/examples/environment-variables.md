@@ -3,12 +3,33 @@ title: Environment Variables
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-First, we need to add [dotenv-c](https://github.com/Isty001/dotenv-c) to our project, and then create a `.env` file in the root directory of our project. Project structure should something be like this:
+First, we need to add [dotenv-c](https://github.com/Isty001/dotenv-c) to our project, and then create a `.env` file in the root directory of our project.
+
+## Installation
+
+### Using [Ecewo-CLI](https://github.com/savashn/ecewo-cli)
+
+```
+ecewo install dotenv
+```
+
+And create a `.env` file in the root directory.
+
+### Manually
+
+Create a `.env` file in the root directory. Then, copy the `dotenv.c` and `dotenv.h` files from the [dotenv-c repository](https://github.com/Isty001/dotenv-c) and paste them into `vendors/` folder. Make sure `dotenv.c` is part of the CMake build configuration.
+
+## Usage
+
+Project structure should something be like this:
 
 ```
 your-project/
 ├── CMakeLists.txt
 ├── .env
+├── vendors/
+│   ├── dotenv.c
+│   └── dotenv.h
 └── src/
     └── main.c
 ```

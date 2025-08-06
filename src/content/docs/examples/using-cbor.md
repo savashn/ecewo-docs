@@ -5,9 +5,38 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 Ecewo supports CBOR responses out of the box. Let's make an `add_user` and `get_all_users` example that we've already done with `cJSON` and `SQLite3` in [Using A Database](/examples/using-a-database/) chapter, but we'll implement with [TinyCBOR](https://github.com/intel/tinycbor) this time.
 
-First, let's run these commands:
+## Installation
 
-## Encoding CBOR
+### Using [Ecewo-CLI](https://github.com/savashn/ecewo-cli)
+
+```
+ecewo install cbor
+ecewo rebuild
+```
+
+### Manually
+
+Add this code block into your `CMakeLists.txt` file:
+
+```
+// CMakeLists.txt
+
+FetchContent_Declare(
+  tinycbor
+  GIT_REPOSITORY https://github.com/intel/tinycbor.git
+  GIT_TAG main
+)
+
+FetchContent_MakeAvailable(tinycbor)
+
+target_link_libraries(server PRIVATE tinycbor)
+```
+
+And rebuild.
+
+## Usage
+
+### Encoding CBOR
 
 We did this with JSON in [this example](/examples/using-json#creating-json). Now let's do it again with CBOR this time.
 
@@ -76,7 +105,7 @@ int main()
 }
 ```
 
-## Decoding CBOR
+### Decoding CBOR
 
 You can see [the exact example](/examples/using-json/#parsing-json) with JSON.
 

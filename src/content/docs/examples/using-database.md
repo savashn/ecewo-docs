@@ -5,16 +5,26 @@ description: Documentation of Ecewo — A minimalist and easy-to-use web framewo
 
 We need a database if we are building a backend service. This documentation shows how to use SQLite.
 
-Install [SQLite3](https://www.sqlite.org/download.html) and add the `sqlite3.c` and `sqlite3.h` files to our project.
+## Installation
 
-## Example Folder Structure
+### Using [Ecewo-CLI](https://github.com/savashn/ecewo-cli)
+
+```
+ecewo install sqlite
+```
+
+### Manually
+
+Install [SQLite3](https://www.sqlite.org/download.html), then add the `sqlite3.c` and `sqlite3.h` files into `vendors/` folder. Make sure `sqlite3.c` is part of the CMake build configuration.
+
+### Example Folder Structure
 
 ```
 your-project/
 ├── CMakeLists.txt          # CMake of our project
 ├── vendors/                # Our external libraries
-│   ├── sqlite3.c       # SQLite3 source file we installed
-│   └── sqlite3.h       # SQLite3 header file we installed
+│   ├── sqlite3.c           # SQLite3 source file we installed
+│   └── sqlite3.h           # SQLite3 header file we installed
 └── src/                    # Source code of ours
     ├── handlers/           # Folder for our handlers
     │   ├── handlers.c      # Our handlers

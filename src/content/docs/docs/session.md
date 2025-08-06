@@ -3,7 +3,7 @@ title: Session-Based Authentication
 description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
 ---
 
-Ecewo offers session management feature for authentication and authorization. First, we need to install the `session.c` and `session.h` files from [ecewo-session repository](https://github.com/savashn/ecewo-session) and add them to our project.
+Ecewo offers session management feature for authentication and authorization.
 
 - `init_sessions()` to initialize the session system
 - `reset_sessions()` to clean up and free all session resources
@@ -19,7 +19,21 @@ With the power of these functions, we can easily manage the authentication and a
 
 Let's make an authentication example and see how it works.
 
-## Login
+## Installation
+
+### Using [Ecewo-CLI](https://github.com/savashn/ecewo-cli)
+
+```
+ecewo install session
+```
+
+### Manually
+
+Copy the `session.c` and `session.h` files from the [ecewo-session repository](https://github.com/savashn/ecewo-session), then paste them into `vendors/` folder. Make sure `session.c` is part of the CMake build configuration.
+
+## Usage
+
+### Login
 
 Let's write a `login` handler:
 
@@ -128,7 +142,7 @@ Let's send a request to `http://localhost:3000/login` with that body:
 
 If login is successful, we'll see a **"Login successful!"** response and a header like `"Cookie": "session_id=VKdbMRbqMhh_40F6ef2FreEba6JqkH16"` will be added to the headers.
 
-## Logout
+### Logout
 
 We also write a logout handler to use after login. Let's add these parts:
 
@@ -201,7 +215,7 @@ You have to login first
 >
 > `get_session()` is running `get_cookie()` under the hood, but it's specialized to extract the `session` from the `Cookie` header. While you need to manually free the memory returned by `get_cookie()`, you don't need to do that with `get_session()` — it handles memory management internally.
 
-## Getting Session Data
+### Getting Session Data
 
 We added 3 data to the session in the `Login` handler: `name`, `username` and `theme`. Let's write another function that sends the session data:
 
@@ -345,7 +359,7 @@ The output will be:
 }
 ```
 
-## Protected Routes
+### Protected Routes
 
 Let's say that we want some pages to be available for authenticated users only. In this situation, we can use `get_session()` function to check if the user has a session.
 
@@ -511,7 +525,7 @@ When we logged in as johndoe and send a request again, here is what we will get:
 }
 ```
 
-## Notes
+### Notes
 
 > **NOTE 1**
 >
