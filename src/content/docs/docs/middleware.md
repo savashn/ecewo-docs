@@ -95,12 +95,12 @@ We have a `use()` macro to call the middleware before the handler.
 #include "handlers.h"
 #include "middlewares.h"
 
-void destroy_app()
+void destroy_app(void)
 {
     reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
 
@@ -150,12 +150,12 @@ int simple_logger(Req *req, Res *res, Chain *chain)
 #include "handlers.h"
 #include "middlewares.h"
 
-void destroy_app()
+void destroy_app(void)
 {
     reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     
@@ -272,12 +272,12 @@ void welcome_handler(Req *req, Res *res)
 }
 
 
-void destroy_app()
+void destroy_app(void)
 {
     reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     

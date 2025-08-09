@@ -14,7 +14,7 @@ Example usage:
 ```c
 // main.c
 
-void destroy_app()
+void destroy_app(void)
 {
     close_db();
     reset_sessions();
@@ -22,7 +22,7 @@ void destroy_app()
     reset_cors();
 }
 
-int main()
+int main(void)
 {
     cors_t cors = {
         .origin = "*",

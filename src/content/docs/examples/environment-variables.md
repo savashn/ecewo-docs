@@ -51,7 +51,7 @@ Let's parse it in `main.c`:
 #include "server.h"
 #include "dotenv.h"
 
-int main()
+int main(void)
 {
     env_load("..", false);              // Load ".env" file
     const char *port = getenv("PORT");  // Get the "PORT"
@@ -72,7 +72,7 @@ For example, `ecewo()` takes an `unsigned short` type variable. So, if we want t
 #include "server.h"
 #include "dotenv.h"
 
-int main()
+int main(void)
 {
     env_load("..", false);
 

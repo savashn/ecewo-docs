@@ -31,12 +31,12 @@ void hello_world(Req *req, Res *res)
     send_text(res, 200, "hello world");
 }
 
-void destroy_app() {
+void destroy_app(void) {
     reset_cors();  // Free the memory that allocated by CORS
     reset_router();
 }
 
-int main()
+int main(void)
 {
     cors_t my_cors = {
         .origin = "http://localhost:3000",        // Default "*"

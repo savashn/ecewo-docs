@@ -51,12 +51,12 @@ void hello_world(Req *req, Res *res) {
 }
 
 // Cleanup function called during graceful shutdown
-void destroy_app() {
+void destroy_app(void) {
    reset_router();  // Free router memory and routes
 }
 
 // Server entry point
-int main() {
+int main(void) {
    init_router();               // Initialize HTTP router system
    get("/", hello_world);       // Register GET route for root path
    shutdown_hook(destroy_app);  // Register cleanup function for graceful shutdown
@@ -73,7 +73,7 @@ We include two header files: `server.h` and `ecewo.h`. Let's explain this code s
 
 - The `void hello_world()` function is a handler. We get the request via `Req *req` and send a plain text response with `Res *res`. We'll see request handling more detailed in the [Route Handlers](/docs/route-handlers) chapter.
 
-- The `int main()` function is the entry point of our program. We need to initialize the router first, and then we are able to define our routes, which are explained in [Defining Routes](/docs/defining-route) chapter more detailed.
+- The `int main(void)` function is the entry point of our program. We need to initialize the router first, and then we are able to define our routes, which are explained in [Defining Routes](/docs/defining-route) chapter more detailed.
 
 - The `shutdown_hook()` is a function pointer that frees the server memory. Before calling `ecewo()`, [shutdown_hook()](/api/shutdown_hook/) must always be invoked to clean up server resources such as the router during shutdown.
 
@@ -81,7 +81,7 @@ We include two header files: `server.h` and `ecewo.h`. Let's explain this code s
 
 > **NOTE:**
 >
-> Just like in the Express.js, we have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main()` function.
+> Just like in the Express.js, we have to define our routes in the entry point, which is `main.c`. For modularity, we can define them outside and call in the `int main(void)` function.
 
 Let's run the following commands in the terminal to build our server:
 

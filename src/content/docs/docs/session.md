@@ -113,12 +113,12 @@ void handle_login(Req *req, Res *res)
   cJSON_Delete(json);
 }
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     reset_sessions();
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_sessions();
@@ -180,12 +180,12 @@ void handle_logout(Req *req, Res *res)
     }
 }
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     reset_sessions();
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_sessions();
@@ -262,12 +262,12 @@ void handle_session_data(Req *req, Res *res)
     cJSON_Delete(session_data);
 }
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     reset_sessions();
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_sessions();
@@ -384,12 +384,12 @@ void handle_protected(Req *req, Res *res)
     send_text(res, 200, "Welcome to the protected area!");
 }
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     reset_sessions();
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_sessions();
@@ -480,12 +480,12 @@ void edit_profile(Req *req, Res *res)
   cJSON_Delete(session_data);
 }
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     reset_sessions();
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_sessions();

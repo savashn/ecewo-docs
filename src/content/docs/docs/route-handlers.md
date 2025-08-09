@@ -187,11 +187,11 @@ void print_body(Req *req, Res *res)
     send_text(res, 200, "Success!");
 }
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     post("/print-body", print_body);
@@ -252,11 +252,11 @@ void send_params(Req *req, Res *res)
     send_text(res, 200, slug);
 }
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     get("/send-params/:slug", send_params);
@@ -298,11 +298,11 @@ void print_more_params(Req *req, Res *res)
     send_text(res, 200, "Success!");
 }
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     get("/print-more-params/:key/and/:value");
@@ -350,11 +350,11 @@ void print_query(Req *req, Res *res)
     send_text(res, 200, "Success!");
 }
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     get("/print-query", print_query);
@@ -416,11 +416,11 @@ void get_user_agent(Req *req, Res *res)
     send_text(res, 200, user_agent);
 }
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     get("/header", get_user_agent);

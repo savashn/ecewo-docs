@@ -68,11 +68,11 @@ void hello_world(Req *req, Res *res)
 #include "server.h"
 #include "handlers.h"
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     get("/", hello_world);
@@ -156,11 +156,11 @@ void handle_user(Req *req, Res *res)
 #include "server.h"
 #include "handlers.h"
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     post("/user", handle_user);

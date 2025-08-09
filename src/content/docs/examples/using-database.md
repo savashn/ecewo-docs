@@ -111,11 +111,11 @@ int init_db();
 #include "server.h"
 #include "db/db.h"
 
-void destroy_app() {
+void destroy_app(void) {
     sqlite3_close(db);
 }
 
-int main()
+int main(void)
 {
     init_db();
     shutdown_hook(destroy_app);
@@ -232,12 +232,12 @@ void add_user(Req *req, Res *res)
 #include "handlers/handlers.h"
 #include "db/db.h"
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     sqlite3_close(db);
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_db();
@@ -380,12 +380,12 @@ You can use `for` loop if you want, but `while` loop is more readable for this j
 #include "handlers/handlers.h"
 #include "db/db.h"
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
     sqlite3_close(db);
 }
 
-int main()
+int main(void)
 {
     init_router();
     init_db();

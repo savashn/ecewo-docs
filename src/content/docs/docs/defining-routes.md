@@ -13,7 +13,7 @@ We can create our routes with these functions:
 
 If they don't have any middleware, they take 2 parameters: First one is the path and second one is the handler.
 
-They must be defined in the entry point, which is the `int main()` function in the `main.c` file. But we must call the `init_router()` before we register the routes and call `reset_router()` in the server cleanup function to free their memory. So an example `main.c` file should be like this:
+They must be defined in the entry point, which is the `int main(void)` function in the `main.c` file. But we must call the `init_router()` before we register the routes and call `reset_router()` in the server cleanup function to free their memory. So an example `main.c` file should be like this:
 
 ```c
 // main.c
@@ -21,11 +21,11 @@ They must be defined in the entry point, which is the `int main()` function in t
 #include "server.h"
 #include "our_handlers.h"
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
 }
 
-int main() {
+int main(void) {
     init_router();
 
     del("/delete", delete_handler);
@@ -76,11 +76,11 @@ Let's call it in main function:
 #include "server.h"
 #include "our_routes.h"
 
-void destroy_app() {
+void destroy_app(void) {
     reset_router();
 }
 
-int main() {
+int main(void) {
     init_router();
 
     register_our_routes();

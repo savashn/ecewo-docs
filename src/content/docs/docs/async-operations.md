@@ -386,11 +386,11 @@ void calculate(Req *req, Res *res); // Our entry point
 #include "server.h"
 #include "handlers.h"
 
-void destroy_app() {
+void destroy_app(void) {
    reset_router();
 }
 
-int main()
+int main(void)
 {
     init_router();
     get("/calculate/:num", calculate);
@@ -598,7 +598,7 @@ void shutdown_my_app()
     reset_router();
 }
 
-int main()
+int main(void)
 {
     env_load("..", false);
 
