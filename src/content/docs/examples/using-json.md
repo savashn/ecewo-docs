@@ -15,7 +15,7 @@ ecewo install cjson
 
 ### Manually
 
-Copy `cJSON.c` and `cJSON.h` files from the [cJSON repository](https://github.com/DaveGamble/cJSON), and paste them into `vendors/` folder. Make sure `cJSON.c` is part of the CMake build configuration.
+Copy [cJSON.c](https://github.com/DaveGamble/cJSON/blob/master/cJSON.c) and [cJSON.h](https://github.com/DaveGamble/cJSON/blob/master/cJSON.h) files from the repository, and paste them into `vendors/` folder. Make sure `cJSON.c` is part of the CMake build configuration.
 
 ## Usage
 

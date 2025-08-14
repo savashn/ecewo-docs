@@ -17,7 +17,7 @@ And create a `.env` file in the root directory.
 
 ### Manually
 
-Create a `.env` file in the root directory. Then, copy the `dotenv.c` and `dotenv.h` files from the [dotenv-c repository](https://github.com/Isty001/dotenv-c) and paste them into `vendors/` folder. Make sure `dotenv.c` is part of the CMake build configuration.
+Create a `.env` file in the root directory. Then, copy the [dotenv.c](https://github.com/Isty001/dotenv-c/blob/master/src/dotenv.c) and [dotenv.h](https://github.com/Isty001/dotenv-c/blob/master/src/dotenv.h) files from the repository and paste them into `vendors/` folder. Make sure `dotenv.c` is part of the CMake build configuration.
 
 ## Usage
 

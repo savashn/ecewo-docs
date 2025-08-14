@@ -15,7 +15,9 @@ ecewo install sqlite
 
 ### Manually
 
-Install [SQLite3](https://www.sqlite.org/download.html), then add the `sqlite3.c` and `sqlite3.h` files into `vendors/` folder. Make sure `sqlite3.c` is part of the CMake build configuration.
+Install SQLite3 amalgamation zip file from the [official page](https://www.sqlite.org/download.html), then add the `sqlite3.c` and `sqlite3.h` files into `vendors/` folder. Make sure `sqlite3.c` is part of the CMake build configuration.
+
+Or, you can download [sqlite3.c](https://github.com/rhuijben/sqlite-amalgamation/blob/master/sqlite3.c) and [sqlite3.h](https://github.com/rhuijben/sqlite-amalgamation/blob/master/sqlite3.h) files directly from an unofficial [sqlite-amalgamation mirror](https://github.com/rhuijben/sqlite-amalgamation). If you prefere this, be sure it's up to date.
 
 ### Example Folder Structure
 
