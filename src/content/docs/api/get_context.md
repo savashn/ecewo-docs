@@ -1,6 +1,6 @@
 ---
 title: get_context()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `get_context()` is for getting the data passing through the middleware chain. It takes the context struct as parameter.

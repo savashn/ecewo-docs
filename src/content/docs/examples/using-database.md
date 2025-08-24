@@ -1,6 +1,6 @@
 ---
 title: Using A Database
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 We need a database if we are building a backend service. This documentation shows how to use SQLite.

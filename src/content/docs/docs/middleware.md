@@ -1,6 +1,6 @@
 ---
 title: Middleware
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 Ecewo provides a middleware feature, which looks like Express.js. Let's see how they work.
@@ -293,4 +293,63 @@ Let's send a response to `http://localhost:3000/welcome?name=Jane&surname=Doe&ag
 
 ```
 Welcome, Jane Doe, 24
+```
+
+### Passing Data With Arena Allocator
+
+Ecewo includes [tsoding/arena](https://github.com/tsoding/arena) allocator. So we can use the arena instead of manual memory management.
+
+```c
+// context.h
+
+#ifndef CONTEXT_H
+#define CONTEXT_H
+
+typedef struct
+{
+    char *name;
+    char *surname;
+    int age;
+} context_t;
+
+// No need a manual cleanup function
+
+#endif
+```
+
+```c
+// main.c
+
+#include "server.h"
+#include "ecewo.h"
+#include "context.h"
+
+// Get the required items in the middleware
+int welcome_middleware(Req *req, Res *res, Chain *chain)
+{
+    // Allocate a context in req->arena
+    context_t *ctx = arena_alloc(req->arena, sizeof(context_t));
+    if (!ctx)
+    {
+        send_text(res, 500, "Internal Server Error");
+        return 0;
+    }
+
+    // Get the query
+    const char *name = get_query(req, "name");
+    const char *surname = get_query(req, "surname");
+    const char *age_str = get_query(req, "age");
+
+    // Attach the queries with context
+    ctx->name = name ? arena_strdup(req->arena, name) : NULL; // use arena_alloc, no malloc
+    ctx->surname = surname ? arena_strdup(req->arena, surname) : NULL; // use arena_alloc, no malloc
+    ctx->age = age_str ? atoi(age_str) : 0;
+
+    // Set the data to the context
+    set_context(req, ctx, sizeof(*ctx), NULL); // We pass NULL, because arena will handle the memory
+
+    return next(chain, req, res);
+}
+
+// Rest of the code ...
 ```

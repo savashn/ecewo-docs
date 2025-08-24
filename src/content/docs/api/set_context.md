@@ -1,6 +1,6 @@
 ---
 title: set_context()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `set_context()` is for setting the data to pass through the middleware chain. It takes 4 parameters.

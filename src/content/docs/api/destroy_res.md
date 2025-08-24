@@ -1,6 +1,6 @@
 ---
 title: destroy_res()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `destroy_res()` is using when the `Res` object has been deep copied. It is necessary to free the memory of the deep copy of `Res` object, especially for the async operations.

@@ -1,6 +1,6 @@
 ---
 title: put()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `put()` is for receiving `PUT` requests. It must be declared in `main` function.

@@ -1,6 +1,6 @@
 ---
 title: use()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `use()` is aa macro for registering a route-specific middleware.

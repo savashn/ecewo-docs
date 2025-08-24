@@ -1,6 +1,6 @@
 ---
 title: Using JSON
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 We'll use [cJSON](https://github.com/DaveGamble/cJSON) to work with JSON objects in this example, but you can also use [jansson](https://github.com/akheron/jansson) if you prefer. For more information, refer to its official documentation.

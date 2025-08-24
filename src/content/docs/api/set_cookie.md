@@ -1,6 +1,6 @@
 ---
 title: set_cookie()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `set_cookie()` is for setting the `Cookie` to the response headers. It takes four parameters: The `Res` object, the cookie name, the cookie value, and cookie options.

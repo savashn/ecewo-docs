@@ -1,6 +1,6 @@
 ---
 title: Environment Variables
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 First, we need to add [dotenv-c](https://github.com/Isty001/dotenv-c) to our project, and then create a `.env` file in the root directory of our project.

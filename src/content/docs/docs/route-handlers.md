@@ -1,6 +1,6 @@
 ---
 title: Route Handlers
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 Writing handlers in Ecewo is similar to Express.js. Every handler takes to parameters: `Req *req` and `Res *res` and we'll take them from `ecewo.h` file.

@@ -1,6 +1,6 @@
 ---
 title: Session-Based Authentication
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 We can easily manage the authentication and authorization using [ecewo-session](https://github.com/savashn/ecewo-session) library. In this page, we'll do authentication examples using it, but for more detailed API referance, refer to its [documentation](https://github.com/savashn/ecewo-session/blob/main/README.md).

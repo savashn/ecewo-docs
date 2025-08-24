@@ -1,6 +1,6 @@
 ---
 title: del()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `del()` is for receiving `DELETE` requests. It must be declared in `main` function.

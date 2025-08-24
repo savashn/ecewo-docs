@@ -1,6 +1,6 @@
 ---
 title: get_params()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `get_params()` is for getting params from request. It runs [get_req()](api/get_req) function under the hood.

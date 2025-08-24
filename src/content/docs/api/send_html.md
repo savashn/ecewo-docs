@@ -1,6 +1,6 @@
 ---
 title: send_html()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `send_html()` is for sending `text/html` responses easily. It runs [reply()](/api/reply) function under the hood.

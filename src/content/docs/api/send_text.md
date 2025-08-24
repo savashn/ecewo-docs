@@ -1,6 +1,6 @@
 ---
 title: send_text()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `send_text()` is for sending `text/plain` responses easily. It runs [reply()](/api/reply) function under the hood.

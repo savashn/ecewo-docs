@@ -1,6 +1,6 @@
 ---
 title: copy_req()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `copy_req()` is using for deep copying the `Req` object. It is necessary especially for async operations.

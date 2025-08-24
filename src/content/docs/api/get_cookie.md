@@ -1,6 +1,6 @@
 ---
 title: get_cookie()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `get_cookie()` is for getting the `Cookie` from request headers. It takes two parameters: The `Req` object and a Cookie name.

@@ -1,6 +1,6 @@
 ---
 title: hook()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `hook()` is for registering a global middleware. It must be registered in `main.c`.

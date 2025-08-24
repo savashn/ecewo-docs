@@ -1,6 +1,6 @@
 ---
 title: set_header()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `set_header()` is for setting a custom header to the response headers.

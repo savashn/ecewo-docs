@@ -1,6 +1,6 @@
 ---
 title: Async Operations
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 Since C doesn’t natively support asynchronous operations, this can be one of the more challenging aspects of working with Ecewo. As a result, async behavior may differ a bit from what you're used to.
@@ -443,6 +443,161 @@ ctx->req = copy_req(req);
 ctx->res = copy_res(res);
 ```
 
+### Usage With Arena
+
+Ecewo includes [tsoding/arena](https://github.com/tsoding/arena) allocator. If you prefer to use arena allocator, so you can use it. The same async operation example written with arena allocator:
+
+```c
+// src/async_handler.c
+
+#include "async.h"
+#include "ecewo.h"
+
+// Context for chained operations
+typedef struct
+{
+    Arena *arena; // We'll store all the memory in this field
+    Res *res;
+    long input;
+    long intermediate;
+    long final;
+} ctx_t;
+
+// Forward declarations of our async chain
+static void add_work(async_t *task, void *context);
+static void add_done(void *context, int success, char *error);
+static void multiply_work(async_t *task, void *context);
+static void multiply_done(void *context, int success, char *error);
+
+// HTTP handler
+void calculate(Req *req, Res *res)
+{
+    // Get the number from request params
+    const char *num_str = get_params(req, "num");
+
+    // Convert it to a number
+    long num = num_str ? strtol(num_str, NULL, 10) : 0;
+
+    // Create an arena
+    Arena *async_arena = calloc(1, sizeof(Arena));
+    if (!async_arena) {
+        send_text(res, 500, "Arena allocation failed");
+        return;
+    }
+
+    // Allocate memory for async
+    ctx_t *ctx = arena_alloc(async_arena, sizeof(*ctx)); // use arena_alloc, no malloc
+    if (!ctx)
+    {
+        send_text(res, 500, "Memory allocation failed");
+        return;
+    }
+
+    // Store arena reference
+    ctx->arena = async_arena;
+
+    // Copy Res to arena
+    ctx->res = arena_copy_res(async_arena, res);
+    if (!ctx->res)
+    {
+        arena_free(ctx->arena);
+        free(ctx->arena);
+        send_text(res, 500, "Response copy failed");
+        return;
+    }
+
+    ctx->input = num;
+    ctx->intermediate = 0;
+    ctx->final = 0;
+
+    // Start the chain: addition
+    task(ctx, add_work, add_done);
+}
+
+static void add_work(async_t *task, void *context)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // Add 10 to the input
+    ctx->intermediate = ctx->input + 10;
+
+    // Go to the _done function
+    ok(task);
+}
+
+static void add_done(void *context, int success, char *error)
+{
+    if (success)
+    {
+        then(context, success, error, multiply_work, multiply_done);
+        // if success, "then" calls the next task named "multiply"
+    }
+    else
+    {
+        // Assign the context
+        ctx_t *ctx = context;
+
+        // Send a response
+        send_text(ctx->res, 500, error);
+
+        // Free the arena
+        arena_free(ctx->arena);
+        free(ctx->arena);
+    }
+}
+
+static void multiply_work(async_t *task, void *context)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // example fail case: intermediate result is too large
+    if (ctx->intermediate > 1000)
+    {
+        // Send an "error" to the "multiply_done()" function
+        fail(task, "Intermediate too large to multiply");
+    }
+    else
+    {
+        // multiply intermediate result by 5
+        ctx->final = ctx->intermediate * 5;
+
+        // Send a "success" to the "multiply_done()" function
+        ok(task);
+    }
+}
+
+static void multiply_done(void *context, int success, char *error)
+{
+    // Assign the context
+    ctx_t *ctx = context;
+
+    // If "multiply_work()" function returns an error
+    if (!success)
+    {
+        send_text(ctx->res, 500, error);
+        arena_free(ctx->arena);
+        free(ctx->arena);
+    }
+    else
+    {
+        char buf[128];
+        int len = snprintf(buf, sizeof(buf),
+                           "((%ld) + 10) * 5 = %ld",
+                           ctx->input, ctx->final);
+
+        send_text(ctx->res, 200, buf);
+    }
+
+    // Ensure memory is always freed regardless of success/failure
+    arena_free(ctx->arena);
+    free(ctx->arena);
+}
+```
+
+The [arena_copy_res](/api/arena_copy_res) function is using for copying the `Res` object, similar to [copy_res](/api/copy_res). But it copy the memory into the Arena. If we also need `Req` object in Arena, we can use [arena_copy_req()](/api/arena_copy_req) function.
+
 ## Async Postgres Queries
 
 For asynchronous database queries, Ecewo supports [libpq](https://www.postgresql.org/docs/current/libpq.html) — the official PostgreSQL client library, which includes asynchronous support.
@@ -823,3 +978,151 @@ static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
 > **NOTE**
 >
 > The `pquv_create()` and `pquv_execute()` functions have to run once. If you wish to continue with more queries, you should basicly write the new queue with `pquv_queue()` and it will be ran automatically.
+
+### Using PQUV With Arena
+
+```c
+// get_all_users.c
+
+#include "handlers.h"
+#include "cJSON.h"
+#include "pquv.h"
+
+// Callback structure to hold request/response context
+typedef struct
+{
+    Arena *arena; // We'll store all the memory in this field
+    Res *res;
+} ctx_t;
+
+static void free_ctx(Arena *arena)
+{
+    if (!arena)
+        return;
+
+    free_arena(arena);
+    free(arena);
+}
+
+static void users_result_callback(pg_async_t *pg, PGresult *result, void *data);
+
+// Async version of get_all_users
+void get_all_users_async(Req *req, Res *res)
+{
+    const char *sql = "SELECT id, name, username FROM users;";
+
+    // Create an arena
+    Arena *async_arena = calloc(1, sizeof(Arena));
+    if (!async_arena) {
+        send_text(res, 500, "Arena allocation failed");
+        return;
+    }
+
+    // Create context to pass to callback
+    ctx_t *ctx = arena_alloc(async_arena, sizeof(*ctx)); // use arena_alloc, no malloc
+    if (!ctx)
+    {
+        send_text(res, 500, "Memory allocation failed");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+    // Store arena reference
+    ctx->arena = async_arena;
+
+    // Copy Res to arena
+    ctx->res = arena_copy_res(async_arena, res);
+    if (!ctx->res)
+    {
+        send_text(res, 500, "Response copy failed");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+    // Create async PostgreSQL context
+    pg_async_t *pg = pquv_create(db, ctx);
+    if (!pg)
+    {
+        send_text(res, 500, "Failed to create async context");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+    // Queue the query
+    int result = pquv_queue(pg, sql, 0, NULL, users_result_callback, ctx);
+    if (result != 0)
+    {
+        send_text(res, 500, "Failed to queue query");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+    // Start execution (this will return immediately)
+    result = pquv_execute(pg);
+    if (result != 0)
+    {
+        printf("get_all_users_async: Failed to execute query\n");
+        send_text(res, 500, "Failed to execute query");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+    printf("get_all_users_async: Query started asynchronously\n");
+    // Function returns here, callback will be called when query completes
+}
+
+// Callback function that processes the query result
+static void users_result_callback(pg_async_t *pg, PGresult *result, void *data)
+{
+    ctx_t *ctx = (ctx_t *)data;
+
+    if (!ctx || !ctx->res)
+    {
+        printf("Invalid context\n");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+
+    // Check result status
+    ExecStatusType status = PQresultStatus(result);
+    if (status != PGRES_TUPLES_OK)
+    {
+        printf("Query failed: %s\n", PQresultErrorMessage(result));
+        send_text(ctx->res, 500, "DB select failed");
+        free_ctx(ctx->arena);
+        return;
+    }
+
+    int rows = PQntuples(result);
+    cJSON *json_array = cJSON_CreateArray();
+
+    for (int i = 0; i < rows; i++)
+    {
+        int id = atoi(PQgetvalue(result, i, 0));
+        const char *name = PQgetvalue(result, i, 1);
+        const char *username = PQgetvalue(result, i, 2);
+
+        cJSON *user_json = cJSON_CreateObject();
+        cJSON_AddNumberToObject(user_json, "id", id);
+        cJSON_AddStringToObject(user_json, "name", name);
+        cJSON_AddStringToObject(user_json, "username", username);
+
+        cJSON_AddItemToArray(json_array, user_json);
+    }
+
+    char *json_string = cJSON_PrintUnformatted(json_array);
+    send_json(ctx->res, 200, json_string);
+
+    // Cleanup
+    cJSON_Delete(json_array);
+    free(json_string);
+    free_ctx(ctx->arena);
+
+    printf("users_result_callback: Response sent successfully\n");
+
+    // If you want to continue the querying,
+    // you shuld basicaly write a new `pquv_queue()` here
+    // it will queue the new query immediately
+}
+```

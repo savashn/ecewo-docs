@@ -1,6 +1,6 @@
 ---
 title: Cookie
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 Ecewo offers a `cookie.h` to get or set a cookie:

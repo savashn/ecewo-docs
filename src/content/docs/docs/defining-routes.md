@@ -1,6 +1,6 @@
 ---
 title: Defining Routes
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 We can create our routes with these functions:

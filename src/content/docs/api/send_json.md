@@ -1,6 +1,6 @@
 ---
 title: send_json()
-description: Documentation of Ecewo — A minimalist and easy-to-use web framework for C
+description: Minimalist and easy-to-use C web framework
 ---
 
 `send_json()` is for sending `application/json` responses easily. It runs [reply()](/api/reply) function under the hood.
